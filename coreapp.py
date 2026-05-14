@@ -1,11 +1,11 @@
 # core for testing
 import openmeteo_requests
-
 import pandas as pd
+from pandas import Timedelta
 import requests_cache
 from retry_requests import retry
-
 import plotly.express as px
+from dash import Dash, dcc, html
 
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
@@ -68,12 +68,52 @@ daily_data["daily_precipitation_sum"] = daily_precipitation_sum
 
 
 daily_dataframe = pd.DataFrame(data=daily_data)
+
+# Weather codes
+WEATHER_GROUPS = {
+    "sunny": [0],
+    "cloudy": [1, 2, 3],
+    "fog": [45, 48],
+    "drizzle": [51, 53, 55],
+    "rain": [61, 63, 65, 66, 67, 80, 81, 82],
+    "snow": [71, 73, 75, 77, 85, 86],
+    "thunder": [95, 96, 99],
+}
+
+
+def get_weather_type(code):
+    for weather_type, codes in WEATHER_GROUPS.items():
+        if code in codes:
+            return weather_type
+    return "unknown"
+
+
+WEATHER_ICONS = {
+    "sunny": "☀️",
+    "cloudy": "☁️",
+    "fog": "🌫",
+    "drizzle": "🌂",
+    "rain": "🌧",
+    "snow": "❄️",
+    "thunder": "⚡",
+}
+daily_dataframe["weather_type"] = daily_dataframe["weather_code"].apply(
+    get_weather_type
+)
+
+daily_dataframe["weather_icon"] = daily_dataframe["weather_type"].map(WEATHER_ICONS)
+daily_dataframe["label"] = (
+    daily_dataframe["date"].dt.strftime("%#m/%#d")
+    + "<br>"
+    + daily_dataframe["weather_icon"]
+)
+
+# date span
+today = pd.Timestamp.now(tz=response.Timezone().decode()).normalize()
+past_7days_df = daily_dataframe[daily_dataframe["date"] < today]
 print("\nDaily data\n", daily_dataframe)
-
+print("\nPast 7 Daily data\n", past_7days_df)
 # Plotly
-display_days = 5
-
-daily_dataframe = daily_dataframe.tail(display_days)
 fig = px.bar(
     daily_dataframe,
     x="date",
@@ -82,8 +122,39 @@ fig = px.bar(
 )
 
 fig.update_xaxes(
-    dtick="D1",
-    tickformat="%-m/%-d",
+    tickmode="array",
+    tickvals=daily_dataframe["date"],
+    ticktext=daily_dataframe["label"],
 )
 fig.update_yaxes(title="Precipitation")
-fig.show()
+
+# new 7days graph
+fig2 = px.bar(
+    past_7days_df,
+    x="date",
+    y="daily_precipitation_sum",
+    title="Past 7days Precipitation",
+)
+
+fig2.update_xaxes(
+    tickmode="array",
+    tickvals=past_7days_df["date"],
+    ticktext=past_7days_df["label"],
+    range=[
+        past_7days_df["date"].iloc[-5] - Timedelta(hours=12),
+        past_7days_df["date"].iloc[-1] + Timedelta(hours=12),
+    ],
+)
+fig2.update_yaxes(title="Precipitation")
+
+# Dash
+app = Dash(__name__)
+
+app.layout = html.Div(
+    [
+        dcc.Graph(figure=fig),
+        dcc.Graph(figure=fig2),
+    ]
+)
+
+app.run(debug=True)
