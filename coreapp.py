@@ -6,7 +6,6 @@ import requests_cache
 from retry_requests import retry
 import plotly.express as px
 from dash import Dash, dcc, html
-import numpy as np
 
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
@@ -142,16 +141,26 @@ fig.update_xaxes(
 )
 fig.update_yaxes(title="Precipitation")
 
-# new 7days graph
+# Past 7days graph
 fig2 = px.bar(
     past_7days_df,
     x="date",
     y="daily_precipitation_sum",
-    title="Past 7days Precipitation",
 )
-
+fig2.update_layout(
+    margin=dict(l=30, r=0, t=00, b=0),
+    autosize=True,
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    font=dict(
+        family="Zen Maru Gothic",
+    ),
+)
+fig2.update_traces(marker_color="#81b8be")
 fig2.update_xaxes(
+    title="",
     tickmode="array",
+    gridcolor="rgba(0,0,0,0)",
     tickvals=past_7days_df["date"],
     ticktext=past_7days_df["label"],
     range=[
@@ -159,8 +168,20 @@ fig2.update_xaxes(
         past_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
 )
-fig2.update_yaxes(title="Precipitation")
-
+fig2.update_yaxes(
+    title="",
+    gridcolor="rgba(0,0,0,0.06)",
+    griddash="dot",
+    gridwidth=1,
+)
+fig2.add_annotation(
+    text="mm",
+    xref="paper",
+    yref="paper",
+    x=0,
+    y=1,
+    showarrow=False,
+)
 # future 7days graph
 # future 7days graph : temperture max - min
 fig_future_temp = px.line(
@@ -172,12 +193,16 @@ fig_future_temp = px.line(
     ],
 )
 fig_future_temp.update_layout(
-    # plot_bgcolor="rgba(0,0,0,0)",
-    # paper_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=30, r=0, t=0, b=0),
     legend=dict(
         x=0.9,
         y=0.95,
+    ),
+    autosize=True,
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    font=dict(
+        family="Zen Maru Gothic",
     ),
 )
 fig_future_temp.add_annotation(
@@ -192,12 +217,12 @@ fig_future_temp.update_traces(line_shape="spline")
 fig_future_temp.update_traces(
     selector=dict(name="daily_temperature_2m_max"),
     name="Max",
-    line=dict(color="tomato"),
+    line=dict(color="#d97366"),
 )
 fig_future_temp.update_traces(
     selector=dict(name="daily_temperature_2m_min"),
     name="min",
-    line=dict(color="blue"),
+    line=dict(color="#7aa38b"),
 )
 fig_future_temp.update_xaxes(
     showgrid=False,
@@ -210,10 +235,12 @@ fig_future_temp.update_xaxes(
     ],
 )
 fig_future_temp.update_yaxes(
-    showgrid=False,
     # zeroline=False,
     # showticklabels=False,
     title="",
+    gridcolor="rgba(0,0,0,0.06)",
+    griddash="dot",
+    gridwidth=1,
 )
 # future 7days graph : precipitation Babble
 future_7days_df["label"] = [
@@ -235,6 +262,9 @@ future_7days_df["bubble_text"] = future_7days_df[
     "daily_precipitation_probability_max"
 ].apply(lambda x: f"{int(x)}%" if int(x) >= 10 else "")
 
+future_7days_df["bubble_opacity"] = (
+    future_7days_df["daily_precipitation_probability_max"] / 100
+)
 fig_future_rain = px.scatter(
     future_7days_df,
     x="date",
@@ -242,25 +272,30 @@ fig_future_rain = px.scatter(
     size="bubble_size",
     text="bubble_text",
     color="daily_precipitation_sum",
-    size_max=60,
+    size_max=40,
 )
 fig_future_rain.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=30, r=0, t=0, b=0),
     height=140,
+    autosize=True,
+    font=dict(
+        family="Zen Maru Gothic",
+    ),
 )
 fig_future_rain.update_traces(
     textfont_size=15,
     textfont_color="white",
     textposition="middle center",
     marker=dict(
-        color="deepskyblue",
+        color="#86b6b3",
         sizemode="area",
-        opacity=0.8,
+        opacity=future_7days_df["bubble_opacity"],
     ),
 )
 fig_future_rain.update_xaxes(
+    title="",
     tickmode="array",
     tickvals=future_7days_df["date"],
     ticktext=future_7days_df["label"],
@@ -280,21 +315,106 @@ fig_future_rain.update_yaxes(
     zeroline=False,
     showline=False,
 )
+
+
 # Dash
-app = Dash(__name__)
+app = Dash(
+    __name__,
+    external_stylesheets=[
+        "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500&display=swap"
+    ],
+)
 
 app.layout = html.Div(
     [
-        dcc.Graph(figure=fig2),
-        dcc.Graph(
-            figure=fig_future_temp,
-            style={"width": "100%"},
+        html.H1(
+            "PLANTly",
+            style={
+                "marginTop": "0",
+                "marginBottom": "16px",
+                "fontSize": "32px",
+                "fontWeight": "500",
+                "color": "#5f6f65",
+            },
         ),
-        dcc.Graph(
-            figure=fig_future_rain,
-            style={"width": "100%"},
+        # Top
+        html.Div(
+            [
+                # Left
+                html.Div(
+                    [
+                        dcc.Graph(
+                            figure=fig2,
+                            responsive=True,
+                            style={
+                                "height": "100%",
+                                "width": "100%",
+                            },
+                            config={"displayModeBar": False},
+                        )
+                    ],
+                    style={
+                        "width": "40%",
+                        "height": "100%",
+                        "backgroundColor": "#f3f1eb",
+                        "borderRadius": "20px",
+                        "padding": "10px",
+                        "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
+                    },
+                ),
+                # Right
+                html.Div(
+                    [
+                        dcc.Graph(
+                            figure=fig_future_temp,
+                            style={
+                                "height": "60%",
+                                "minHeight": 0,
+                            },
+                            config={"displayModeBar": False},
+                            responsive=True,
+                        ),
+                        dcc.Graph(
+                            figure=fig_future_rain,
+                            style={
+                                "height": "40%",
+                                "minHeight": 0,
+                            },
+                            config={"displayModeBar": False},
+                            responsive=True,
+                        ),
+                    ],
+                    style={
+                        "width": "60%",
+                        "height": "100%",
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "backgroundColor": "#f3f1eb",
+                        "borderRadius": "20px",
+                        "padding": "10px",
+                        "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
+                    },
+                ),
+            ],
+            style={
+                "display": "flex",
+                "gap": "12px",
+                "height": "55vh",
+            },
         ),
-    ]
+        # Bottom
+        html.Div(
+            [
+                # Graph
+            ]
+        ),
+    ],
+    style={
+        "backgroundColor": "#eef2ea",
+        "minHeight": "100vh",
+        "padding": "16px",
+        "fontFamily": "Zen Maru Gothic",
+    },
 )
 
 app.run(debug=True)
