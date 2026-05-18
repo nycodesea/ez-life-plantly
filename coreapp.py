@@ -892,7 +892,7 @@ app.layout = html.Div(
                     ],
                     style={
                         "width": "40%",
-                        "height": "200px",
+                        "height": "300px",
                         "backgroundColor": "#f3f1eb",
                         "borderRadius": "20px",
                         "padding": "4px",
@@ -924,7 +924,7 @@ app.layout = html.Div(
                     ],
                     style={
                         "width": "60%",
-                        "height": "200px",
+                        "height": "300px",
                         "display": "flex",
                         "flexDirection": "column",
                         "backgroundColor": "#f3f1eb",
@@ -951,7 +951,7 @@ app.layout = html.Div(
                         dcc.Graph(
                             figure=fig_today,
                             style={
-                                "height": "300px",
+                                "height": "400px",
                                 "width": "100%",
                                 "padding": "0px",
                                 "margin": "0",
