@@ -261,7 +261,8 @@ fig2 = px.bar(
     custom_data=["daily_precipitation_sum"],
 )
 fig2.update_layout(
-    margin=dict(l=30, r=0, t=00, b=0),
+    height=150,
+    margin=dict(l=20, r=0, t=00, b=0),
     autosize=True,
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
@@ -275,7 +276,7 @@ fig2.update_traces(
     hovertemplate="%{y:.2f}mm<br>" + "<extra></extra>",
 )
 fig2.update_xaxes(
-    title="",
+    title=None,
     tickmode="array",
     gridcolor="rgba(0,0,0,0)",
     tickvals=past_7days_df["date"],
@@ -284,13 +285,15 @@ fig2.update_xaxes(
         past_7days_df["date"].iloc[-5] - Timedelta(hours=12),
         past_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
+    showline=True,
+    linewidth=0.1,
 )
 y_max = max(
     past_7days_df["daily_precipitation_sum"].max(),
     5,
 )
 fig2.update_yaxes(
-    title="",
+    title=None,
     gridcolor="rgba(0,0,0,0.06)",
     griddash="dot",
     gridwidth=1,
@@ -322,11 +325,13 @@ fig_future_temp = px.line(
     ],
 )
 fig_future_temp.update_layout(
-    margin=dict(l=30, r=0, t=0, b=0),
+    height=150,
+    margin=dict(l=20, r=20, t=0, b=0),
     legend=dict(
         x=0.9,
         y=0.95,
     ),
+    hovermode="x unified",
     autosize=True,
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
@@ -351,30 +356,41 @@ fig_future_temp.update_traces(
     selector=dict(name="daily_temperature_2m_max"),
     name="Max",
     line=dict(color="#d97366"),
+    showlegend=False,
 )
 fig_future_temp.update_traces(
     selector=dict(name="daily_temperature_2m_min"),
     name="min",
-    line=dict(color="#7aa38b"),
+    line=dict(color="#89a9c7"),
+    showlegend=False,
 )
 
 fig_future_temp.update_xaxes(
     showgrid=False,
     zeroline=False,
     showticklabels=False,
-    title="",
+    title=None,
     range=[
         future_7days_df["date"].iloc[0] - Timedelta(hours=12),
         future_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
+    showspikes=True,
+    spikecolor="rgba(120,140,170,0.5)",
+    spikethickness=1,
+    spikedash="dot",
+    spikesnap="cursor",
 )
+temp_min = future_7days_df["daily_temperature_2m_min"].min()
+temp_max = future_7days_df["daily_temperature_2m_max"].max()
+
 fig_future_temp.update_yaxes(
     # zeroline=False,
     # showticklabels=False,
-    title="",
+    title=None,
     gridcolor="rgba(0,0,0,0.06)",
     griddash="dot",
     gridwidth=1,
+    range=[temp_min - 1, temp_max + 3],
 )
 # future 7days graph : precipitation Babble
 future_7days_df["label"] = [
@@ -412,7 +428,7 @@ fig_future_rain = px.scatter(
 fig_future_rain.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
-    margin=dict(l=30, r=0, t=0, b=0),
+    margin=dict(l=20, r=20, t=0, b=0),
     height=140,
     autosize=True,
     font=dict(
@@ -432,7 +448,7 @@ fig_future_rain.update_traces(
     hovertemplate=None,
 )
 fig_future_rain.update_xaxes(
-    title="",
+    title=None,
     tickmode="array",
     tickvals=future_7days_df["date"],
     ticktext=future_7days_df["label"],
@@ -462,8 +478,8 @@ today_df = today_df.reset_index(drop=True)
 today_df["x"] = today_df["date"]
 today_df["x_index"] = np.arange(len(today_df))
 # for DEBUG --------------------------------------------
-DEBUG_MODE = True
-mode = "heavy"
+DEBUG_MODE = False
+mode = "random_mix"
 
 if DEBUG_MODE:
 
@@ -496,10 +512,25 @@ fig_today = make_subplots(
     rows=2,
     cols=1,
     vertical_spacing=0.03,
-    row_heights=[0.85, 0.15],
+    row_heights=[0.8, 0.2],
     shared_xaxes=True,
     specs=[[{"secondary_y": True}], [{}]],
 )
+# --- 気温（メインライン）---
+fig_today.add_trace(
+    go.Scatter(
+        x=today_df["date"],
+        y=today_df["temperature_2m"],
+        name="Temp",
+        mode="lines",
+        line=dict(color="#7aa38b", width=2, shape="spline", smoothing=0.8),
+        hovertemplate="%{y:.1f}℃<extra></extra>",
+    ),
+    row=1,
+    col=1,
+    secondary_y=False,
+)
+
 # --- 雨（背景バー）---
 fig_today.add_trace(
     go.Bar(
@@ -516,25 +547,11 @@ fig_today.add_trace(
     secondary_y=True,
 )
 
-# --- 気温（メインライン）---
-fig_today.add_trace(
-    go.Scatter(
-        x=today_df["date"],
-        y=today_df["temperature_2m"],
-        name="Temp",
-        mode="lines",
-        line=dict(color="#d97366", width=2, shape="spline", smoothing=0.8),
-        hovertemplate="%{y:.1f}℃<extra></extra>",
-    ),
-    row=1,
-    col=1,
-    secondary_y=False,
-)
 
 # --- 降水確率（バブル）---
 
 MAX_R = 20  # 最大バブル半径（px相当、sizeref で調整）
-bubble_size = 5 + today_df["precipitation_probability"] * 0.22
+bubble_size = 6 + today_df["precipitation_probability"] * 0.22
 
 # 確率に応じた色（青の濃さ）
 bubble_colors = [
@@ -573,13 +590,20 @@ fig_today.add_trace(
 # --- レイアウト ---
 now = pd.Timestamp.now(tz=tz)
 fig_today.update_layout(
-    height=400,
-    margin=dict(l=40, r=40, t=30, b=50),
+    height=300,
+    margin=dict(l=20, r=20, t=30, b=20),
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
     font=dict(family="Zen Maru Gothic", size=11, color="#5f6f65"),
     hovermode="x unified",
     showlegend=False,
+    spikedistance=-1,
+    hoverlabel=dict(
+        bgcolor="rgba(255,255,255,0.6)",
+        bordercolor="rgba(0,0,0,0)",
+        font_size=11,
+    ),
+    xaxis=dict(hoverformat="%-m/%-d %-H:%M"),
 )
 
 now = pd.Timestamp.now(tz=tz)
@@ -616,6 +640,11 @@ fig_today.update_xaxes(
 fig_today.update_xaxes(
     row=2,
     col=1,
+    showspikes=True,
+    spikecolor="rgba(255,255,255,0.25)",
+    spikethickness=1,
+    spikedash="dot",
+    spikesnap="cursor",
     tickmode="array",
     tickvals=today_df["date"],
     ticktext=today_df["x_label"],
@@ -631,7 +660,7 @@ fig_today.update_xaxes(
 )
 # 気温（左）
 fig_today.update_yaxes(
-    title="",
+    title=None,
     ticksuffix="℃",
     gridcolor="rgba(0,0,0,0.05)",
     griddash="dot",
@@ -639,6 +668,10 @@ fig_today.update_yaxes(
     ticks="",
     ticklen=0,
     tickfont=dict(size=10),
+    range=[
+        0,
+        today_df["temperature_2m"].max() + 5,
+    ],
     row=1,
     col=1,
     secondary_y=False,
@@ -646,7 +679,7 @@ fig_today.update_yaxes(
 
 # 雨（右）
 fig_today.update_yaxes(
-    title="",
+    title=None,
     ticksuffix="mm",
     range=[0, max(today_df["precipitation"].max() * 3, 5)],
     gridcolor="rgba(0,0,0,0.0)",
@@ -661,7 +694,7 @@ fig_today.update_yaxes(
     secondary_y=True,
 )
 fig_today.update_yaxes(
-    title="",
+    title=None,
     ticks="",
     ticklen=0,
     row=2,
@@ -677,29 +710,29 @@ fig_today.add_shape(
     x0=today_df["date"].iloc[0],
     x1=today_df["date"].iloc[-1],
     y0=-1,
-    y1=1,
+    y1=0,
     fillcolor="rgba(90,160,220,0.05)",
     line_width=0,
 )
 # ── 「mm」「℃」アノテーション ────────────────────────────────────────
-fig_today.add_annotation(
-    text="℃",
-    xref="paper",
-    yref="paper",
-    x=0,
-    y=1.02,
-    showarrow=False,
-    font=dict(size=10, color="#9aaa9f"),
-)
-fig_today.add_annotation(
-    text="mm",
-    xref="paper",
-    yref="paper",
-    x=1,
-    y=1.02,
-    showarrow=False,
-    font=dict(size=10, color="#9aaa9f"),
-)
+# fig_today.add_annotation(
+#     text="℃",
+#     xref="paper",
+#     yref="paper",
+#     x=0,
+#     y=1.02,
+#     showarrow=False,
+#     font=dict(size=10, color="#9aaa9f"),
+# )
+# fig_today.add_annotation(
+#     text="mm",
+#     xref="paper",
+#     yref="paper",
+#     x=1,
+#     y=1.02,
+#     showarrow=False,
+#     font=dict(size=10, color="#9aaa9f"),
+# )
 fig_today.add_annotation(
     text="",
     xref="paper",
@@ -859,10 +892,10 @@ app.layout = html.Div(
                     ],
                     style={
                         "width": "40%",
-                        "height": "100%",
+                        "height": "200px",
                         "backgroundColor": "#f3f1eb",
                         "borderRadius": "20px",
-                        "padding": "10px",
+                        "padding": "4px",
                         "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
                     },
                 ),
@@ -891,12 +924,12 @@ app.layout = html.Div(
                     ],
                     style={
                         "width": "60%",
-                        "height": "100%",
+                        "height": "200px",
                         "display": "flex",
                         "flexDirection": "column",
                         "backgroundColor": "#f3f1eb",
                         "borderRadius": "20px",
-                        "padding": "10px",
+                        "padding": "4px",
                         "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
                         "position": "relative",
                     },
@@ -904,8 +937,7 @@ app.layout = html.Div(
             ],
             style={
                 "display": "flex",
-                "gap": "12px",
-                "height": "55vh",
+                "gap": "10px",
             },
         ),
         # Bottom
@@ -919,7 +951,7 @@ app.layout = html.Div(
                         dcc.Graph(
                             figure=fig_today,
                             style={
-                                "height": "100%",
+                                "height": "300px",
                                 "width": "100%",
                                 "padding": "0px",
                                 "margin": "0",
@@ -948,8 +980,8 @@ app.layout = html.Div(
                 "alignItems": "stretch",
                 "backgroundColor": "#f3f1eb",
                 "borderRadius": "20px",
-                "padding": "10px",
-                "marginTop": "40px",
+                "padding": "4px",
+                "marginTop": "20px",
                 "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
             },
         ),
