@@ -5,7 +5,10 @@ from pandas import Timedelta
 import requests_cache
 from retry_requests import retry
 import plotly.express as px
+import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback
+import numpy as np
+from plotly.subplots import make_subplots
 
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
@@ -34,12 +37,46 @@ params = {
         "relative_humidity_2m",
         "is_day",
         "precipitation",
+        "precipitation_probability",
         "rain",
         "showers",
         "snowfall",
         "weather_code",
         "cloud_cover",
         "wind_speed_10m",
+        "evapotranspiration",
+        "soil_temperature_0cm",
+        "soil_temperature_6cm",
+        "soil_temperature_18cm",
+        "soil_moisture_0_to_1cm",
+        "soil_moisture_1_to_3cm",
+        "soil_moisture_3_to_9cm",
+        "soil_moisture_9_to_27cm",
+        "uv_index",
+        "sunshine_duration",
+    ],
+    "hourly": [
+        "temperature_2m",
+        "relative_humidity_2m",
+        "is_day",
+        "precipitation",
+        "precipitation_probability",
+        "rain",
+        "showers",
+        "snowfall",
+        "weather_code",
+        "cloud_cover",
+        "wind_speed_10m",
+        "evapotranspiration",
+        "soil_temperature_0cm",
+        "soil_temperature_6cm",
+        "soil_temperature_18cm",
+        "soil_moisture_0_to_1cm",
+        "soil_moisture_1_to_3cm",
+        "soil_moisture_3_to_9cm",
+        "soil_moisture_9_to_27cm",
+        "uv_index",
+        "sunshine_duration",
     ],
     "timezone": "Asia/Tokyo",
     "past_days": 7,
@@ -48,7 +85,7 @@ params = {
 responses = openmeteo.weather_api(url, params=params)
 response = responses[0]
 
-# Process daily data. The order of variables needs to be the same as requested.
+# Process daily data.
 daily = response.Daily()
 daily_weather_code = daily.Variables(0).ValuesAsNumpy()
 # daily_rain_sum = daily.Variables(1).ValuesAsNumpy()
@@ -75,6 +112,93 @@ daily_data["daily_temperature_2m_min"] = daily_temperature_2m_min
 
 daily_dataframe = pd.DataFrame(data=daily_data)
 
+# Process hourly data.
+# Process hourly data
+hourly = response.Hourly()
+
+hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+hourly_relative_humidity_2m = hourly.Variables(1).ValuesAsNumpy()
+hourly_is_day = hourly.Variables(2).ValuesAsNumpy()
+hourly_precipitation = hourly.Variables(3).ValuesAsNumpy()
+hourly_precipitation_probability = hourly.Variables(4).ValuesAsNumpy()
+hourly_rain = hourly.Variables(5).ValuesAsNumpy()
+hourly_showers = hourly.Variables(6).ValuesAsNumpy()
+hourly_snowfall = hourly.Variables(7).ValuesAsNumpy()
+hourly_weather_code = hourly.Variables(8).ValuesAsNumpy()
+hourly_cloud_cover = hourly.Variables(9).ValuesAsNumpy()
+hourly_wind_speed_10m = hourly.Variables(10).ValuesAsNumpy()
+hourly_evapotranspiration = hourly.Variables(11).ValuesAsNumpy()
+hourly_soil_temperature_0cm = hourly.Variables(12).ValuesAsNumpy()
+hourly_soil_temperature_6cm = hourly.Variables(13).ValuesAsNumpy()
+hourly_soil_temperature_18cm = hourly.Variables(14).ValuesAsNumpy()
+hourly_soil_moisture_0_to_1cm = hourly.Variables(15).ValuesAsNumpy()
+hourly_soil_moisture_1_to_3cm = hourly.Variables(16).ValuesAsNumpy()
+hourly_soil_moisture_3_to_9cm = hourly.Variables(17).ValuesAsNumpy()
+hourly_soil_moisture_9_to_27cm = hourly.Variables(18).ValuesAsNumpy()
+hourly_uv_index = hourly.Variables(19).ValuesAsNumpy()
+hourly_sunshine_duration = hourly.Variables(20).ValuesAsNumpy()
+
+hourly_df = pd.DataFrame()
+
+hourly_df["temperature_2m"] = hourly_temperature_2m
+hourly_df["relative_humidity_2m"] = hourly_relative_humidity_2m
+hourly_df["is_day"] = hourly_is_day
+
+hourly_df["precipitation"] = hourly_precipitation
+hourly_df["precipitation_probability"] = hourly_precipitation_probability
+
+hourly_df["rain"] = hourly_rain
+hourly_df["showers"] = hourly_showers
+hourly_df["snowfall"] = hourly_snowfall
+
+hourly_df["weather_code"] = hourly_weather_code
+hourly_df["cloud_cover"] = hourly_cloud_cover
+hourly_df["wind_speed_10m"] = hourly_wind_speed_10m
+
+hourly_df["evapotranspiration"] = hourly_evapotranspiration
+
+hourly_df["soil_temperature_0cm"] = hourly_soil_temperature_0cm
+hourly_df["soil_temperature_6cm"] = hourly_soil_temperature_6cm
+hourly_df["soil_temperature_18cm"] = hourly_soil_temperature_18cm
+
+hourly_df["soil_moisture_0_to_1cm"] = hourly_soil_moisture_0_to_1cm
+hourly_df["soil_moisture_1_to_3cm"] = hourly_soil_moisture_1_to_3cm
+hourly_df["soil_moisture_3_to_9cm"] = hourly_soil_moisture_3_to_9cm
+hourly_df["soil_moisture_9_to_27cm"] = hourly_soil_moisture_9_to_27cm
+
+hourly_df["uv_index"] = hourly_uv_index
+hourly_df["sunshine_duration"] = hourly_sunshine_duration
+
+hourly_df["date"] = pd.date_range(
+    start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+    end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+    freq=pd.Timedelta(seconds=hourly.Interval()),
+    inclusive="left",
+).tz_convert(response.Timezone().decode())
+
+# Procdss current data.
+# current = response.Current()
+# current_temperature_2m = current.Variables(0).ValuesAsNumpy()
+# "relative_humidity_2m"= current.Variables(1).ValuesAsNumpy()
+# "is_day"= current.Variables(2).ValuesAsNumpy()
+# "precipitation"= current.Variables(3).ValuesAsNumpy()
+# "precipitation_probability"= current.Variables(4).ValuesAsNumpy()
+# "rain"= current.Variables(5).ValuesAsNumpy()
+# "showers"= current.Variables(6).ValuesAsNumpy()
+# "snowfall"= current.Variables(7).ValuesAsNumpy()
+# "weather_code"= current.Variables(8).ValuesAsNumpy()
+# "cloud_cover"= current.Variables(9).ValuesAsNumpy()
+# "wind_speed_10m"= current.Variables(10).ValuesAsNumpy()
+# "evapotranspiration"= current.Variables(11).ValuesAsNumpy()
+# "soil_temperature_0cm"= current.Variables(12).ValuesAsNumpy()
+# "soil_temperature_6cm"= current.Variables(13).ValuesAsNumpy()
+# "soil_temperature_18cm"= current.Variables(14).ValuesAsNumpy()
+# "soil_moisture_0_to_1cm"= current.Variables(15).ValuesAsNumpy()
+# "soil_moisture_1_to_3cm"= current.Variables(16).ValuesAsNumpy()
+# "soil_moisture_3_to_9cm"= current.Variables(17).ValuesAsNumpy()
+# "soil_moisture_9_to_27cm"= current.Variables(18).ValuesAsNumpy()
+# "uv_index"= current.Variables(19).ValuesAsNumpy()
+# "sunshine_duration"= current.Variables(20).ValuesAsNumpy()
 # Weather codes
 WEATHER_GROUPS = {
     "sunny": [0],
@@ -109,7 +233,7 @@ daily_dataframe["weather_type"] = daily_dataframe["weather_code"].apply(
 
 daily_dataframe["weather_icon"] = daily_dataframe["weather_type"].map(WEATHER_ICONS)
 daily_dataframe["label"] = (
-    daily_dataframe["date"].dt.strftime("%#m/%#d")
+    daily_dataframe["date"].dt.strftime("%m/%d").str.replace("/0", "/").str.lstrip("0")
     + "<br>"
     + daily_dataframe["weather_icon"]
 )
@@ -117,30 +241,18 @@ daily_dataframe["label"] = (
 # date span
 today = pd.Timestamp.now(tz=response.Timezone().decode()).normalize()
 past_7days_df = daily_dataframe[daily_dataframe["date"] < today]
-future_7days_df = daily_dataframe[daily_dataframe["date"] > today]
+tomorrow = today + Timedelta(days=1)
+future_7days_df = daily_dataframe[daily_dataframe["date"] >= tomorrow]
 
-print(
-    "\nfuture 7days Precipitation probability\n",
-    future_7days_df["daily_precipitation_probability_max"],
-)
-print("\nFuture 7days Precipitation\n", future_7days_df["daily_precipitation_sum"])
-print("\nDaily data\n", daily_dataframe)
-print("\nPast 7 Daily data\n", past_7days_df)
+# print(
+#     "\nfuture 7days Precipitation probability\n",
+#     future_7days_df["daily_precipitation_probability_max"],
+# )
+# print("\nFuture 7days Precipitation\n", future_7days_df["daily_precipitation_sum"])
+# print("\nDaily data\n", daily_dataframe)
+# print("\nPast 7 Daily data\n", past_7days_df)
+
 # Plotly
-fig = px.bar(
-    daily_dataframe,
-    x="date",
-    y="daily_precipitation_sum",
-    title="Past Precipitation",
-)
-
-fig.update_xaxes(
-    tickmode="array",
-    tickvals=daily_dataframe["date"],
-    ticktext=daily_dataframe["label"],
-)
-fig.update_yaxes(title="Precipitation")
-
 # Past 7days graph
 fig2 = px.bar(
     past_7days_df,
@@ -160,7 +272,7 @@ fig2.update_layout(
 )
 fig2.update_traces(
     marker_color="#81b8be",
-    hovertemplate="<b>%{x}</b><br>" + "降水量: %{y:.2f}mm<br>" + "<extra></extra>",
+    hovertemplate="%{y:.2f}mm<br>" + "<extra></extra>",
 )
 fig2.update_xaxes(
     title="",
@@ -221,8 +333,6 @@ fig_future_temp.update_layout(
     font=dict(
         family="Zen Maru Gothic",
     ),
-    hovermode="x unified",
-    xaxis=dict(unifiedhovertitle=dict(text="<b>%{x|%m/%d (%a)}</b>")),
 )
 fig_future_temp.add_annotation(
     text="℃",
@@ -234,26 +344,18 @@ fig_future_temp.add_annotation(
 )
 fig_future_temp.update_traces(
     line_shape="spline",
+    hoverinfo="none",
+    hovertemplate=None,
 )
 fig_future_temp.update_traces(
     selector=dict(name="daily_temperature_2m_max"),
     name="Max",
     line=dict(color="#d97366"),
-    hovertemplate="最高気温: %{y:.1f}℃<br>"
-    + "降水確率: %{customdata[0]}%<br>"
-    + "降水量: %{customdata[1]:.1f}mm<br>"
-    + "%{customdata[2]}"
-    + "<extra></extra>",
 )
 fig_future_temp.update_traces(
     selector=dict(name="daily_temperature_2m_min"),
     name="min",
     line=dict(color="#7aa38b"),
-    hovertemplate="最低気温: %{y:.1f}℃<br>"
-    + "降水確率: %{customdata[0]}%<br>"
-    + "降水量: %{customdata[1]:.1f}mm<br>"
-    + "%{customdata[2]}"
-    + "<extra></extra>",
 )
 
 fig_future_temp.update_xaxes(
@@ -279,7 +381,7 @@ future_7days_df["label"] = [
     (
         "明日<br>" + icon
         if date == today + Timedelta(days=1)
-        else date.strftime("%#m/%#d") + "<br>" + icon
+        else date.strftime("%m/%d").replace("/0", "/").lstrip("0") + "<br>" + icon
     )
     for date, icon in zip(future_7days_df["date"], future_7days_df["weather_icon"])
 ]
@@ -326,9 +428,8 @@ fig_future_rain.update_traces(
         sizemode="area",
         opacity=future_7days_df["bubble_opacity"],
     ),
-    hovertemplate="降水確率: %{customdata[0]}%<br>"
-    + "降水量 %{customdata[1]}mm"
-    + "<extra></extra>",
+    hoverinfo="none",
+    hovertemplate=None,
 )
 fig_future_rain.update_xaxes(
     title="",
@@ -352,6 +453,273 @@ fig_future_rain.update_yaxes(
     showline=False,
 )
 
+# Today------------------------------------------------
+tz = response.Timezone().decode()
+now = pd.Timestamp.now(tz=tz).normalize()
+
+today_df = hourly_df.copy()
+today_df = today_df.reset_index(drop=True)
+today_df["x"] = today_df["date"]
+today_df["x_index"] = np.arange(len(today_df))
+# for DEBUG --------------------------------------------
+DEBUG_MODE = True
+mode = "heavy"
+
+if DEBUG_MODE:
+
+    def make_debug_precip(n):
+        return {
+            "none": np.zeros(n),
+            "light": np.random.uniform(0, 1, n),
+            "medium": np.random.uniform(1, 3, n),
+            "heavy": np.random.uniform(3, 8, n),
+            "storm": np.random.uniform(5, 15, n),
+            "spike": np.concatenate(
+                [
+                    np.zeros(n // 3),
+                    np.random.uniform(0, 2, n // 3),
+                    np.random.uniform(8, 15, n - 2 * (n // 3)),
+                ]
+            ),
+            "wave": 5 + 4 * np.sin(np.linspace(0, 3 * np.pi, n)),
+            "random_mix": np.random.gamma(shape=2.0, scale=2.0, size=n),
+        }
+
+    patterns = make_debug_precip(len(today_df))
+
+    today_df["precipitation"] = patterns[mode]
+    today_df["precipitation_probability"] = np.clip(
+        today_df["precipitation"] * 15 + np.random.uniform(0, 20, len(today_df)), 0, 100
+    )
+# --------------------------------------------------------
+fig_today = make_subplots(
+    rows=2,
+    cols=1,
+    vertical_spacing=0.03,
+    row_heights=[0.85, 0.15],
+    shared_xaxes=True,
+    specs=[[{"secondary_y": True}], [{}]],
+)
+# --- 雨（背景バー）---
+fig_today.add_trace(
+    go.Bar(
+        x=today_df["date"],
+        y=today_df["precipitation"],
+        yaxis="y2",
+        name="Rain",
+        marker_color="rgba(90, 160, 255, 0.4)",
+        base=0,
+        hovertemplate="%{y:.1f} mm<extra></extra>",
+    ),
+    row=1,
+    col=1,
+    secondary_y=True,
+)
+
+# --- 気温（メインライン）---
+fig_today.add_trace(
+    go.Scatter(
+        x=today_df["date"],
+        y=today_df["temperature_2m"],
+        name="Temp",
+        mode="lines",
+        line=dict(color="#d97366", width=2, shape="spline", smoothing=0.8),
+        hovertemplate="%{y:.1f}℃<extra></extra>",
+    ),
+    row=1,
+    col=1,
+    secondary_y=False,
+)
+
+# --- 降水確率（バブル）---
+
+MAX_R = 20  # 最大バブル半径（px相当、sizeref で調整）
+bubble_size = 5 + today_df["precipitation_probability"] * 0.22
+
+# 確率に応じた色（青の濃さ）
+bubble_colors = [
+    f"rgba(90,160,220,{0.15 + (p / 100) * 0.85:.2f})"
+    for p in today_df["precipitation_probability"]
+]
+
+# バブル内テキスト（20%以上のみ表示）
+bubble_text = [
+    f"{int(p)}%" if p >= 20 else "" for p in today_df["precipitation_probability"]
+]
+
+fig_today.add_trace(
+    go.Scatter(
+        x=today_df["date"],
+        y=[0] * len(today_df),
+        mode="markers+text",
+        name="precipitation_probability",
+        marker=dict(
+            size=bubble_size,
+            sizemode="diameter",
+            color=bubble_colors,
+            line=dict(width=0),
+        ),
+        text=bubble_text,
+        textposition="middle center",
+        textfont=dict(size=10, color="white"),
+        hoverinfo="skip",
+        showlegend=False,
+    ),
+    row=2,
+    col=1,
+)
+
+
+# --- レイアウト ---
+now = pd.Timestamp.now(tz=tz)
+fig_today.update_layout(
+    height=400,
+    margin=dict(l=40, r=40, t=30, b=50),
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    font=dict(family="Zen Maru Gothic", size=11, color="#5f6f65"),
+    hovermode="x unified",
+    showlegend=False,
+)
+
+now = pd.Timestamp.now(tz=tz)
+# ── X軸（上：非表示 / 下：時刻ラベル） ───────────────────────────────
+today_df["weather_type"] = today_df["weather_code"].apply(get_weather_type)
+
+today_df["weather_icon"] = today_df["weather_type"].map(WEATHER_ICONS)
+
+
+today_df["hour"] = today_df["date"].dt.hour
+
+# ④ label（ここで全部使う）
+today_df["x_label"] = (
+    today_df["date"].dt.strftime("%H:%M").str.replace("^0", "", regex=True)
+    + "<br>"
+    + today_df["weather_icon"]
+    + np.where(
+        today_df["hour"].isin([0, 12]),
+        "<br>" + today_df["date"].dt.strftime("%m/%d").str.lstrip("0"),
+        "",
+    )
+)
+
+fig_today.update_xaxes(
+    row=1,
+    col=1,
+    showgrid=False,
+    zeroline=False,
+    showticklabels=False,
+    ticks="",
+    showline=True,
+    linewidth=0.1,
+)
+fig_today.update_xaxes(
+    row=2,
+    col=1,
+    tickmode="array",
+    tickvals=today_df["date"],
+    ticktext=today_df["x_label"],
+    tickfont=dict(size=10),
+    ticks="",  # 目盛り線は無し
+    ticklen=0,  # 目盛り線の長さを0にして完全に消す
+    showline=False,  # ← 軸ライン出す！
+    linecolor="rgba(0,0,0,0.15)",  # 薄グレー
+    linewidth=1,
+    showgrid=False,
+    zeroline=False,
+    range=[now - pd.Timedelta(hours=2), now + pd.Timedelta(hours=16)],
+)
+# 気温（左）
+fig_today.update_yaxes(
+    title="",
+    ticksuffix="℃",
+    gridcolor="rgba(0,0,0,0.05)",
+    griddash="dot",
+    zeroline=False,
+    ticks="",
+    ticklen=0,
+    tickfont=dict(size=10),
+    row=1,
+    col=1,
+    secondary_y=False,
+)
+
+# 雨（右）
+fig_today.update_yaxes(
+    title="",
+    ticksuffix="mm",
+    range=[0, max(today_df["precipitation"].max() * 3, 5)],
+    gridcolor="rgba(0,0,0,0.0)",
+    zeroline=False,
+    zerolinecolor="rgba(0,0,0,0.2)",  # シャープ黒
+    zerolinewidth=0.8,
+    ticks="",
+    ticklen=0,
+    tickfont=dict(size=10),
+    row=1,
+    col=1,
+    secondary_y=True,
+)
+fig_today.update_yaxes(
+    title="",
+    ticks="",
+    ticklen=0,
+    row=2,
+    col=1,
+    visible=False,
+    zeroline=False,
+    range=[-0.05, 0.05],
+)
+fig_today.add_shape(
+    type="rect",
+    xref="x",
+    yref="y2",
+    x0=today_df["date"].iloc[0],
+    x1=today_df["date"].iloc[-1],
+    y0=-1,
+    y1=1,
+    fillcolor="rgba(90,160,220,0.05)",
+    line_width=0,
+)
+# ── 「mm」「℃」アノテーション ────────────────────────────────────────
+fig_today.add_annotation(
+    text="℃",
+    xref="paper",
+    yref="paper",
+    x=0,
+    y=1.02,
+    showarrow=False,
+    font=dict(size=10, color="#9aaa9f"),
+)
+fig_today.add_annotation(
+    text="mm",
+    xref="paper",
+    yref="paper",
+    x=1,
+    y=1.02,
+    showarrow=False,
+    font=dict(size=10, color="#9aaa9f"),
+)
+fig_today.add_annotation(
+    text="",
+    xref="paper",
+    yref="paper",
+    x=0,
+    y=0.22,
+    showarrow=False,
+    font=dict(size=10, color="#9aaa9f"),
+    xanchor="left",
+)
+# ── 現在時刻の縦線 ────────────────────────────────────────────────────
+now = pd.Timestamp.now(tz="Asia/Tokyo").floor("h")
+fig_today.add_vline(
+    x=now,
+    line_width=1,
+    line_dash="dash",
+    line_color="rgba(120,140,170,0.45)",
+    row="all",
+    col=1,
+)
 
 # Dash
 app = Dash(
@@ -387,7 +755,8 @@ def update_hover_card(hoverData):
         [
             # Top
             html.Div(
-                f"{row['date'].strftime('%#m/%#d')}" f"{row['weather_icon']}",
+                f"{row['date'].strftime('%m/%d').replace('/0', '/').lstrip('0')}"
+                f"{row['weather_icon']}",
                 style={
                     "fontSize": "16px",
                     "paddingLeft": "4px",
@@ -435,6 +804,7 @@ def update_hover_card(hoverData):
 
 app.layout = html.Div(
     [
+        # Title Top-left
         html.H1(
             "PLANTly",
             style={
@@ -446,6 +816,7 @@ app.layout = html.Div(
                 "color": "#5f6f65",
             },
         ),
+        # hover-card Top-right
         html.Div(
             id="hover-card",
             children="グラフにカーソルを合わせてください",
@@ -453,7 +824,8 @@ app.layout = html.Div(
                 "position": "absolute",
                 "top": "12px",
                 "right": "12px",
-                "width": "160px",
+                "width": "200px",
+                "maxWidth": "220px",
                 # "height": "50px",
                 "padding": "8px 12px",
                 "borderRadius": "14px",
@@ -539,12 +911,51 @@ app.layout = html.Div(
         # Bottom
         html.Div(
             [
-                # Graph
-            ]
+                # left
+                html.Div("植物指標"),
+                # center
+                html.Div(
+                    [
+                        dcc.Graph(
+                            figure=fig_today,
+                            style={
+                                "height": "100%",
+                                "width": "100%",
+                                "padding": "0px",
+                                "margin": "0",
+                            },
+                            config={"displayModeBar": False, "displaylogo": False},
+                            responsive=True,
+                        ),
+                    ],
+                    style={
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                        "padding": "0",
+                        "margin": "0",
+                        "width": "70%",
+                        "height": "100%",
+                    },
+                ),
+                # right
+                html.Div("湿度・風・降水"),
+            ],
+            style={
+                "display": "flex",
+                "justifyContent": "space-between",
+                "alignItems": "stretch",
+                "backgroundColor": "#f3f1eb",
+                "borderRadius": "20px",
+                "padding": "20px",
+                "marginTop": "40px",
+                "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
+            },
         ),
     ],
     style={
-        "backgroundColor": "#eef2ea",
+        "backgroundColor": "#daedda",
         "minHeight": "100vh",
         "padding": "16px",
         "fontFamily": "Zen Maru Gothic",
