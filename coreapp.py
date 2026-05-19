@@ -988,7 +988,8 @@ app.layout = html.Div(
     ],
     style={
         "backgroundColor": "#daedda",
-        "minHeight": "100vh",
+        "minHeight": "80vh",
+        "borderRadius": "20px",
         "padding": "16px",
         "fontFamily": "Zen Maru Gothic",
         "position": "relative",
