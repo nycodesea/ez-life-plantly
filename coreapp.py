@@ -317,7 +317,7 @@ fig2.add_annotation(
 )
 
 
-# future 7days graph
+# future 7days graph----------------------------------------------
 # future 7days graph : temperture max - min
 fig_future_temp = px.line(
     future_7days_df,
@@ -1057,6 +1057,7 @@ app.layout = html.Div(
                         dcc.Graph(
                             id="today-graph",
                             figure=fig_today,
+                            clear_on_unhover=True,
                             style={
                                 "height": "400px",
                                 "width": "100%",
