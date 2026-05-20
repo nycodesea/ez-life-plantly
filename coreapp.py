@@ -6,7 +6,7 @@ import requests_cache
 from retry_requests import retry
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, dcc, html, Input, Output, callback
+from dash import Dash, dcc, html, Input, Output, callback, no_update, ctx
 import numpy as np
 from plotly.subplots import make_subplots
 
@@ -269,6 +269,14 @@ fig2.update_layout(
     font=dict(
         family="Zen Maru Gothic",
     ),
+    hoverlabel=dict(
+        bgcolor="rgba(255,255,255,0.92)",
+        bordercolor="rgba(0,0,0,0)",
+        font=dict(
+            color="#5f6f65",
+            size=11,
+        ),
+    ),
     # hovermode="x unified",
 )
 fig2.update_traces(
@@ -332,6 +340,7 @@ fig_future_temp.update_layout(
         y=0.95,
     ),
     hovermode="x unified",
+    hoverdistance=100,
     autosize=True,
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
@@ -374,11 +383,13 @@ fig_future_temp.update_xaxes(
         future_7days_df["date"].iloc[0] - Timedelta(hours=12),
         future_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
+    showline=False,
+    linecolor="rgba(0,0,0,0)",
     showspikes=True,
     spikecolor="rgba(120,140,170,0.5)",
     spikethickness=1,
     spikedash="dot",
-    spikesnap="cursor",
+    spikesnap="data",
 )
 temp_min = future_7days_df["daily_temperature_2m_min"].min()
 temp_max = future_7days_df["daily_temperature_2m_max"].max()
@@ -426,6 +437,8 @@ fig_future_rain = px.scatter(
     ],
 )
 fig_future_rain.update_layout(
+    hovermode="x unified",
+    hoverdistance=200,
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=20, r=20, t=0, b=0),
@@ -434,18 +447,28 @@ fig_future_rain.update_layout(
     font=dict(
         family="Zen Maru Gothic",
     ),
+    hoverlabel=dict(
+        bgcolor="rgba(0,0,0,0)",
+        bordercolor="rgba(0,0,0,0)",
+        font=dict(color="rgba(0,0,0,0)", size=1),
+    ),
 )
 fig_future_rain.update_traces(
     textfont_size=15,
     textfont_color="white",
     textposition="middle center",
     marker=dict(
-        color="#86b6b3",
+        color="#89a9c7",
         sizemode="area",
         opacity=future_7days_df["bubble_opacity"],
     ),
-    hoverinfo="none",
-    hovertemplate=None,
+    hovertemplate="<extra></extra>",
+    # ← hoverlabelを完全透明化
+    hoverlabel=dict(
+        bgcolor="rgba(0,0,0,0)",
+        bordercolor="rgba(0,0,0,0)",
+        font=dict(color="rgba(0,0,0,0)", size=1),
+    ),
 )
 fig_future_rain.update_xaxes(
     title=None,
@@ -459,6 +482,13 @@ fig_future_rain.update_xaxes(
         future_7days_df["date"].iloc[0] - Timedelta(hours=12),
         future_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
+    linecolor="rgba(0,0,0,0)",
+    showspikes=True,
+    spikecolor="rgba(120,140,170,0.5)",
+    spikethickness=1,
+    spikedash="dot",
+    spikesnap="data",
+    spikemode="across",
 )
 fig_future_rain.update_yaxes(
     range=[-0.5, 0.5],
@@ -522,9 +552,15 @@ fig_today.add_trace(
         x=today_df["date"],
         y=today_df["temperature_2m"],
         name="Temp",
-        mode="lines",
+        mode="lines+markers",
+        marker=dict(
+            size=12,
+            opacity=0,
+        ),
         line=dict(color="#6fa08a", width=3, shape="spline", smoothing=0.8),
-        hovertemplate="%{y:.1f}℃<extra></extra>",
+        hovertemplate=None,
+        hoverinfo="none",
+        hoveron="points+fills",
     ),
     row=1,
     col=1,
@@ -540,7 +576,8 @@ fig_today.add_trace(
         name="Rain",
         marker_color="rgba(90, 160, 255, 0.4)",
         base=0,
-        hovertemplate="%{y:.1f} mm<extra></extra>",
+        hoverinfo="none",
+        hovertemplate=None,
     ),
     row=1,
     col=1,
@@ -579,7 +616,8 @@ fig_today.add_trace(
         text=bubble_text,
         textposition="middle center",
         textfont=dict(size=10, color="white"),
-        hoverinfo="skip",
+        hoverinfo="none",
+        hovertemplate=None,
         showlegend=False,
     ),
     row=2,
@@ -596,13 +634,9 @@ fig_today.update_layout(
     paper_bgcolor="rgba(0,0,0,0)",
     font=dict(family="Zen Maru Gothic", size=11, color="#5f6f65"),
     hovermode="x unified",
+    hoverdistance=200,
     showlegend=False,
     spikedistance=-1,
-    hoverlabel=dict(
-        bgcolor="rgba(255,255,255,0.6)",
-        bordercolor="rgba(0,0,0,0)",
-        font_size=11,
-    ),
     xaxis=dict(hoverformat="%-m/%-d %-H:%M"),
 )
 
@@ -630,21 +664,22 @@ today_df["x_label"] = (
 fig_today.update_xaxes(
     row=1,
     col=1,
-    showgrid=False,
-    zeroline=False,
-    showticklabels=False,
-    ticks="",
-    showline=True,
-    linewidth=0.1,
+    showspikes=True,
+    spikecolor="rgba(120,140,170,0.5)",
+    spikethickness=1,
+    spikedash="dot",
+    spikesnap="data",
+    spikemode="across",
 )
 fig_today.update_xaxes(
     row=2,
     col=1,
     showspikes=True,
-    spikecolor="rgba(255,255,255,0.25)",
+    spikecolor="rgba(120,140,170,0.5)",
     spikethickness=1,
     spikedash="dot",
-    spikesnap="cursor",
+    spikesnap="data",
+    spikemode="across",
     tickmode="array",
     tickvals=today_df["date"],
     ticktext=today_df["x_label"],
@@ -763,78 +798,164 @@ app = Dash(
 )
 
 
-# future graph hover
+# future graph (Top-right) hover
 @app.callback(
-    Output("hover-card", "children"),
+    Output("future-tooltip", "show"),
+    Output("future-tooltip", "bbox"),
+    Output("future-tooltip", "children"),
     Input("future-temp-graph", "hoverData"),
+    Input("future-rain-graph", "hoverData"),
 )
-def update_hover_card(hoverData):
+def display_hover_card(temp_hover, rain_hover):
+    trigger = ctx.triggered_id
+
+    if trigger == "future-temp-graph":
+        hoverData = temp_hover
+    elif trigger == "future-rain-graph":
+        hoverData = rain_hover
+    else:
+        hoverData = None
 
     if hoverData is None:
-        return "グラフにカーソルを合わせてください"
+        return False, no_update, no_update
 
     point = hoverData["points"][0]
-
+    bbox = point["bbox"]
     date = pd.to_datetime(point["x"]).date()
 
     matched = future_7days_df[future_7days_df["date"].dt.date == date]
 
     if matched.empty:
-        return "データなし"
+        return False, no_update, no_update
 
     row = matched.iloc[0]
 
-    return html.Div(
-        [
-            # Top
-            html.Div(
-                f"{row['date'].strftime('%m/%d').replace('/0', '/').lstrip('0')}"
-                f"{row['weather_icon']}",
-                style={
-                    "fontSize": "16px",
-                    "paddingLeft": "4px",
-                    "marginBottom": "8px",
-                },
-            ),
-            # Bottom
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.Div(
-                                f"{row['daily_temperature_2m_max']:.0f}℃",
-                                style={"color": "#d97366"},
-                            ),
-                            html.Div(
-                                f"{row['daily_temperature_2m_min']:.1f}℃",
-                                style={"color": "#7aa38b"},
-                            ),
-                        ],
-                        style={"width": "62px"},
-                    ),
-                    html.Div(f"☔"),
-                    html.Div(
-                        [
-                            html.Div(f"{row['daily_precipitation_sum']:.1f} mm"),
-                            html.Div(
-                                f"{row['daily_precipitation_probability_max']:.0f}%"
-                            ),
-                        ],
-                        style={"color": "#6f8fb8"},
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "justifyContent": "center",
-                    # "gap": "4px",
-                    "fontSize": "12px",
-                    "lineHeight": "1.4",
-                },
-            ),
-        ]
+    return (
+        True,
+        bbox,
+        html.Div(
+            [
+                # Top
+                html.Div(
+                    f"{row['date'].strftime('%m/%d').replace('/0', '/').lstrip('0')}"
+                    f"{row['weather_icon']}",
+                    style={
+                        "fontSize": "16px",
+                        "paddingLeft": "4px",
+                        "marginBottom": "8px",
+                    },
+                ),
+                # Bottom
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                html.Div(
+                                    f"{row['daily_temperature_2m_max']:.0f}℃",
+                                    style={"color": "#d97366"},
+                                ),
+                                html.Div(
+                                    f"{row['daily_temperature_2m_min']:.1f}℃",
+                                    style={"color": "#7aa38b"},
+                                ),
+                            ],
+                            style={"width": "62px"},
+                        ),
+                        html.Div(f"☔"),
+                        html.Div(
+                            [
+                                html.Div(f"{row['daily_precipitation_sum']:.1f} mm"),
+                                html.Div(
+                                    f"{row['daily_precipitation_probability_max']:.0f}%"
+                                ),
+                            ],
+                            style={"color": "#6f8fb8"},
+                        ),
+                    ],
+                    style={
+                        "display": "flex",
+                        "justifyContent": "center",
+                        # "gap": "4px",
+                        "fontSize": "12px",
+                        "lineHeight": "1.4",
+                    },
+                ),
+            ]
+        ),
     )
 
 
+# Current graph hover info-card
+@app.callback(
+    Output("today-tooltip", "show"),
+    Output("today-tooltip", "bbox"),
+    Output("today-tooltip", "children"),
+    Input("today-graph", "hoverData"),
+)
+def display_today_hover(hoverData):
+
+    if not hoverData:
+        return False, no_update, no_update
+
+    point = hoverData["points"][0]
+
+    if "bbox" not in point:
+        return False, no_update, no_update
+
+    bbox = point["bbox"]
+
+    date = pd.to_datetime(point["x"]).tz_localize(tz)
+    matched = today_df[today_df["date"].dt.floor("h") == date.floor("h")]
+
+    if matched.empty:
+        return False, no_update, no_update
+
+    row = matched.iloc[0]
+
+    return (
+        True,
+        bbox,
+        html.Div(
+            [
+                html.Div(
+                    f"{row['date'].strftime('%H:%M')} " f"{row['weather_icon']}",
+                    style={
+                        "fontSize": "16px",
+                        "marginBottom": "8px",
+                    },
+                ),
+                html.Div(
+                    [
+                        html.Div(
+                            f"{row['temperature_2m']:.1f}℃",
+                            style={
+                                "color": "#6fa08a",
+                                "fontSize": "18px",
+                                "fontWeight": "500",
+                            },
+                        ),
+                        html.Div(
+                            [
+                                html.Div(f"☔ {row['precipitation']:.1f} mm"),
+                                html.Div(f"{row['precipitation_probability']:.0f}%"),
+                            ],
+                            style={
+                                "color": "#6f8fb8",
+                                "fontSize": "12px",
+                            },
+                        ),
+                    ]
+                ),
+            ],
+            style={
+                "padding": "4px",
+                "minWidth": "90px",
+            },
+        ),
+    )
+
+
+# Dash---------------------------------------
 app.layout = html.Div(
     [
         # Title Top-left
@@ -847,31 +968,6 @@ app.layout = html.Div(
                 "fontSize": "32px",
                 "fontWeight": "500",
                 "color": "#5f6f65",
-            },
-        ),
-        # hover-card Top-right
-        html.Div(
-            id="hover-card",
-            children="グラフにカーソルを合わせてください",
-            style={
-                "position": "absolute",
-                "top": "12px",
-                "right": "12px",
-                "width": "200px",
-                "maxWidth": "220px",
-                # "height": "50px",
-                "padding": "8px 12px",
-                "borderRadius": "14px",
-                "backgroundColor": "rgba(243,241,235,0.72)",
-                "backdropFilter": "blur(6px)",
-                "display": "flex",
-                "flexDirection": "column",
-                "justifyContent": "center",
-                "fontSize": "12px",
-                "lineHeight": "1.3",
-                "boxShadow": "0 2px 8px rgba(0,0,0,0.05)",
-                "pointerEvents": "none",
-                "zIndex": 100,
             },
         ),
         # Top
@@ -905,6 +1001,7 @@ app.layout = html.Div(
                         dcc.Graph(
                             id="future-temp-graph",
                             figure=fig_future_temp,
+                            clear_on_unhover=True,
                             style={
                                 "flex": 6,
                                 "minHeight": 0,
@@ -913,13 +1010,22 @@ app.layout = html.Div(
                             responsive=True,
                         ),
                         dcc.Graph(
+                            id="future-rain-graph",
                             figure=fig_future_rain,
+                            clear_on_unhover=True,
                             style={
                                 "flex": 4,
                                 "minHeight": 0,
                             },
                             config={"displayModeBar": False},
                             responsive=True,
+                        ),
+                        dcc.Tooltip(
+                            id="future-tooltip",
+                            targetable=False,
+                            style={
+                                "pointerEvents": "none",
+                            },
                         ),
                     ],
                     style={
@@ -949,6 +1055,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         dcc.Graph(
+                            id="today-graph",
                             figure=fig_today,
                             style={
                                 "height": "400px",
@@ -959,10 +1066,23 @@ app.layout = html.Div(
                             config={"displayModeBar": False, "displaylogo": False},
                             responsive=True,
                         ),
+                        dcc.Tooltip(
+                            id="today-tooltip",
+                            # direction="top",
+                            style={
+                                "zIndex": 9999,
+                                "backgroundColor": "rgba(255,255,255,0.95)",
+                                "borderRadius": "12px",
+                                "padding": "8px",
+                                "boxShadow": "0 4px 12px rgba(0,0,0,0.12)",
+                            },
+                        ),
                     ],
                     style={
                         "display": "flex",
                         "flexDirection": "column",
+                        "position": "relative",
+                        "overflow": "visible",
                         "alignItems": "center",
                         "justifyContent": "center",
                         "padding": "0",
