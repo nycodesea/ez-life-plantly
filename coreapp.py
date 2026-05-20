@@ -1,4 +1,4 @@
-# core for testing
+# Plantly planet-force
 import openmeteo_requests
 import pandas as pd
 from pandas import Timedelta
@@ -551,7 +551,7 @@ fig_today.add_trace(
 # --- 降水確率（バブル）---
 
 MAX_R = 20  # 最大バブル半径（px相当、sizeref で調整）
-bubble_size = 6 + today_df["precipitation_probability"] * 0.22
+bubble_size = 10 + today_df["precipitation_probability"] * 0.3
 
 # 確率に応じた色（青の濃さ）
 bubble_colors = [
