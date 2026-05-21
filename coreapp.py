@@ -375,8 +375,9 @@ fig_future_temp.update_traces(
 )
 
 fig_future_temp.update_xaxes(
+    fixedrange=True,
     showgrid=False,
-    zeroline=False,
+    zeroline=True,
     showticklabels=False,
     title=None,
     range=[
@@ -384,7 +385,7 @@ fig_future_temp.update_xaxes(
         future_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
     showline=False,
-    linecolor="rgba(0,0,0,0)",
+    linecolor="rgba(100,0,0,1)",
     showspikes=True,
     spikecolor="rgba(120,140,170,0.5)",
     spikethickness=1,
@@ -397,6 +398,7 @@ temp_max = future_7days_df["daily_temperature_2m_max"].max()
 fig_future_temp.update_yaxes(
     # zeroline=False,
     # showticklabels=False,
+    fixedrange=True,
     title=None,
     gridcolor="rgba(0,0,0,0.06)",
     griddash="dot",
@@ -471,6 +473,7 @@ fig_future_rain.update_traces(
     ),
 )
 fig_future_rain.update_xaxes(
+    fixedrange=True,
     title=None,
     tickmode="array",
     tickvals=future_7days_df["date"],
@@ -491,6 +494,7 @@ fig_future_rain.update_xaxes(
     spikemode="across",
 )
 fig_future_rain.update_yaxes(
+    fixedrange=True,
     range=[-0.5, 0.5],
     visible=False,
     showticklabels=False,
@@ -541,7 +545,7 @@ if DEBUG_MODE:
 fig_today = make_subplots(
     rows=2,
     cols=1,
-    vertical_spacing=0.03,
+    vertical_spacing=0.008,
     row_heights=[0.8, 0.2],
     shared_xaxes=True,
     specs=[[{"secondary_y": True}], [{}]],
@@ -628,6 +632,7 @@ fig_today.add_trace(
 # --- レイアウト ---
 now = pd.Timestamp.now(tz=tz)
 fig_today.update_layout(
+    dragmode="zoom",
     height=300,
     margin=dict(l=20, r=20, t=30, b=20),
     plot_bgcolor="rgba(0,0,0,0)",
@@ -662,6 +667,7 @@ today_df["x_label"] = (
 )
 
 fig_today.update_xaxes(
+    fixedrange=False,
     row=1,
     col=1,
     showspikes=True,
@@ -670,6 +676,9 @@ fig_today.update_xaxes(
     spikedash="dot",
     spikesnap="data",
     spikemode="across",
+    zeroline=True,
+    zerolinecolor="rgba(0,0,0,1)",
+    linewidth=1,  # シャープ黒
 )
 fig_today.update_xaxes(
     row=2,
@@ -691,10 +700,12 @@ fig_today.update_xaxes(
     linewidth=1,
     showgrid=False,
     zeroline=False,
+    fixedrange=False,
     range=[now - pd.Timedelta(hours=2), now + pd.Timedelta(hours=16)],
 )
 # 気温（左）
 fig_today.update_yaxes(
+    fixedrange=True,
     title=None,
     ticksuffix="℃",
     gridcolor="rgba(0,0,0,0.05)",
@@ -712,8 +723,8 @@ fig_today.update_yaxes(
     secondary_y=False,
 )
 
-# 雨（右）
 fig_today.update_yaxes(
+    fixedrange=True,
     title=None,
     ticksuffix="mm",
     range=[0, max(today_df["precipitation"].max() * 3, 5)],
@@ -736,7 +747,7 @@ fig_today.update_yaxes(
     col=1,
     visible=False,
     zeroline=False,
-    range=[-0.05, 0.05],
+    range=[-0.01, 0.01],
 )
 fig_today.add_shape(
     type="rect",
