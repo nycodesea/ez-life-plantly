@@ -759,7 +759,7 @@ fig_today.update_yaxes(
     gridcolor="rgba(0,0,0,0.0)",
     zeroline=True,
     zerolinecolor="rgba(0,0,0,0.1)",  # シャープ黒
-    zerolinewidth=0.1,
+    zerolinewidth=0.06,
     ticks="",
     ticklen=0,
     tickfont=dict(size=10),
