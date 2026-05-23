@@ -4,7 +4,7 @@
 
 ## 🖼️ Screenshot
 
-![Plantly icon image](assets/favicon.ico)
+![Plantly icon image](assets/Plantly_icon.png)
 ![Plantly Screenshot](assets/screenshot.png)
 
 ## Built With
