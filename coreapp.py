@@ -422,7 +422,7 @@ fig_future_temp.update_yaxes(
 # future 7days graph : precipitation Babble
 future_7days_df["label"] = [
     (
-        "明日<br>" + icon
+        "Tomorrow<br>" + icon
         if date == today + Timedelta(days=1)
         else date.strftime("%m/%d").replace("/0", "/").lstrip("0") + "<br>" + icon
     )
@@ -869,6 +869,7 @@ app = Dash(
     external_stylesheets=[
         "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500&display=swap"
     ],
+    title="Plantly",
 )
 
 
@@ -992,7 +993,8 @@ def display_today_hover(hoverData):
         html.Div(
             [
                 html.Div(
-                    f"{row['date'].strftime('%H:%M')} " f"{row['weather_icon']}",
+                    f"{row['date'].strftime('%H:%M').replace('/0', '/').lstrip('0')} "
+                    f"{row['weather_icon']}",
                     style={
                         "fontSize": "16px",
                         "marginBottom": "8px",
@@ -1074,8 +1076,9 @@ app.layout = html.Div(
                         "backgroundColor": "#f3f1eb",
                         "borderRadius": "20px",
                         "boxShadow": "0 2px 8px rgba(0, 0, 0, 0.1)",
-                        "width": "180px",
-                        "fontSize": "14px",
+                        "width": "220px",
+                        "hight": "180px",
+                        "fontSize": "18px",
                         "lineHeight": "1.2",
                         "marginLeft": "auto",
                         "position": "relative",

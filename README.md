@@ -1,4 +1,10 @@
 # Plantly
+
+---
+
+## 🖼️ Screenshot
+
+![Plantly icon image](assets/favicon.ico)
 ![Plantly Screenshot](assets/screenshot.png)
 
 ## Built With
