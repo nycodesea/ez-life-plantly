@@ -858,7 +858,7 @@ def format_time(x):
     if x in ["now", "not rain"]:
         return x
     dt = pd.to_datetime(x)
-    return f"{dt.month}/{dt.day} {dt:%H:%M}"
+    return f"{dt.month}/{dt.day} {dt.hour}:{dt.minute:02d}"
 
 
 rain_start_time = format_time(rain_start_time)
@@ -993,7 +993,7 @@ def display_today_hover(hoverData):
         html.Div(
             [
                 html.Div(
-                    f"{row['date'].strftime('%H:%M').replace('/0', '/').lstrip('0')} "
+                    f"{row['date'].strftime('%H:%M')[1:] if row['date'].strftime('%H').startswith('0') else row['date'].strftime('%H:%M')} "
                     f"{row['weather_icon']}",
                     style={
                         "fontSize": "16px",
@@ -1012,10 +1012,23 @@ def display_today_hover(hoverData):
                         ),
                         html.Div(
                             [
-                                html.Div(f"☔ {row['precipitation']:.1f} mm"),
-                                html.Div(f"{row['precipitation_probability']:.0f}%"),
+                                html.Div(
+                                    f"☔",
+                                    style={
+                                        "marginRight": "6px",
+                                    },
+                                ),
+                                html.Div(
+                                    [
+                                        html.Div(f"{row['precipitation']:.1f} mm"),
+                                        html.Div(
+                                            f"{row['precipitation_probability']:.0f}%"
+                                        ),
+                                    ],
+                                ),
                             ],
                             style={
+                                "display": "flex",
                                 "color": "#6f8fb8",
                                 "fontSize": "12px",
                             },
@@ -1038,15 +1051,32 @@ app.layout = html.Div(
         html.Div(
             [
                 # Title Top-left
-                html.H1(
-                    "PLANTly",
+                html.Div(
+                    [
+                        html.Img(
+                            src="assets/Plantly_icon.png",
+                            style={
+                                "width": "32px",
+                                "height": "32px",
+                                "marginLeft": "8px",
+                            },
+                        ),
+                        html.H1(
+                            "PLANTly",
+                            style={
+                                "marginTop": "0",
+                                "marginBottom": "10px",
+                                "marginLeft": "4px",
+                                "fontSize": "32px",
+                                "fontWeight": "500",
+                                "color": "#5f6f65",
+                            },
+                        ),
+                    ],
                     style={
-                        "marginTop": "0",
-                        "marginBottom": "10px",
-                        "marginLeft": "16px",
-                        "fontSize": "32px",
-                        "fontWeight": "500",
-                        "color": "#5f6f65",
+                        "display": "flex",
+                        "alignItems": "center",
+                        "gap": "0px",
                     },
                 ),
                 # Info card Top-right
@@ -1143,6 +1173,11 @@ app.layout = html.Div(
                             targetable=False,
                             style={
                                 "pointerEvents": "none",
+                                "zIndex": 9999,
+                                "backgroundColor": "rgba(255,255,255,0.95)",
+                                "borderRadius": "12px",
+                                "padding": "8px",
+                                "boxShadow": "0 4px 12px rgba(0,0,0,0.12)",
                             },
                         ),
                     ],
