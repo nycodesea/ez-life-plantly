@@ -272,7 +272,7 @@ fig2.update_layout(
         family="Zen Maru Gothic",
     ),
     hoverlabel=dict(
-        bgcolor="rgba(255,255,255,0.92)",
+        bgcolor="rgba(230,230,255,0.9)",
         bordercolor="rgba(0,0,0,0)",
         font=dict(
             color="#5f6f65",
@@ -291,15 +291,17 @@ fig2.update_xaxes(
     gridcolor="rgba(0,0,0,0)",
     tickvals=past_7days_df["date"],
     ticktext=past_7days_df["label"],
+    tickfont=dict(size=14),
     range=[
         past_7days_df["date"].iloc[-5] - Timedelta(hours=12),
         past_7days_df["date"].iloc[-1] + Timedelta(hours=12),
     ],
     zeroline=True,
-    zerolinecolor="rgba(0,0,0,0.06)",
-    zerolinewidth=0,
+    zerolinecolor="rgba(200,0,0,1)",
+    zerolinewidth=1,
     showline=True,
-    linewidth=0,
+    linewidth=0.2,
+    linecolor="rgba(0,0,0, 0.06)",
 )
 y_max = max(
     past_7days_df["daily_precipitation_sum"].max() + 1,
@@ -311,11 +313,12 @@ fig2.update_yaxes(
     griddash="dot",
     gridwidth=1,
     range=[0, y_max],
-    zeroline=True,
+    tickfont=dict(size=14),
+    zeroline=False,
     zerolinecolor="rgba(0,0,0,0.06)",
-    zerolinewidth=2,
-    showline=True,
-    linewidth=0.02,
+    zerolinewidth=0.1,
+    showline=False,
+    linewidth=0.1,
     linecolor="rgba(0,0,0,0.06)",
 )
 fig2.add_annotation(
@@ -387,16 +390,17 @@ fig_future_temp.update_traces(
 
 fig_future_temp.update_xaxes(
     showline=True,
-    linecolor="rgba(0,0,0,0.06)",
+    linecolor="rgba(0,0,0,0.2)",
     fixedrange=True,
     showgrid=False,
     zeroline=True,
-    zerolinecolor="rgba(0,0,0,0.1)",
+    zerolinecolor="rgba(200,0,0,0.5)",
+    zerolinewidth=2,
     showticklabels=False,
     title=None,
     range=[
         future_7days_df["date"].iloc[0] - Timedelta(hours=12),
-        future_7days_df["date"].iloc[-1] + Timedelta(hours=12),
+        future_7days_df["date"].iloc[-1] + Timedelta(hours=16),
     ],
     showspikes=True,
     spikecolor="rgba(120,140,170,0.5)",
@@ -413,11 +417,14 @@ fig_future_temp.update_yaxes(
     gridcolor="rgba(0,0,0,0.06)",
     griddash="dot",
     gridwidth=1,
-    range=[temp_min - 1, temp_max + 3],
-    showline=True,
+    tickfont=dict(size=14),
+    range=[-2, temp_max + 3],
+    showline=False,
     linewidth=0.02,
     linecolor="rgba(0,0,0,0.06)",
     zeroline=True,
+    zerolinecolor="rgba(0,0,0,0.06)",
+    zerolinewidth=0.1,
 )
 # future 7days graph : precipitation Babble
 future_7days_df["label"] = [
@@ -443,10 +450,10 @@ future_7days_df["bubble_opacity"] = (
 fig_future_rain = px.scatter(
     future_7days_df,
     x="date",
-    y=[0] * len(future_7days_df),
+    y=[0.15] * len(future_7days_df),
     size="bubble_size",
     text="bubble_text",
-    size_max=35,
+    size_max=30,
     custom_data=[
         "daily_precipitation_probability_max",
         "daily_precipitation_sum",
@@ -474,7 +481,7 @@ fig_future_rain.update_traces(
     textfont_color="white",
     textposition="middle center",
     marker=dict(
-        color="#89a9c7",
+        color="#81b8be",
         sizemode="area",
         opacity=future_7days_df["bubble_opacity"],
     ),
@@ -492,12 +499,14 @@ fig_future_rain.update_xaxes(
     tickmode="array",
     tickvals=future_7days_df["date"],
     ticktext=future_7days_df["label"],
+    tickfont=dict(size=14),
+    ticklabelstandoff=-14,
     showgrid=False,
     zeroline=False,
-    showline=False,
+    showline=True,
     range=[
         future_7days_df["date"].iloc[0] - Timedelta(hours=12),
-        future_7days_df["date"].iloc[-1] + Timedelta(hours=12),
+        future_7days_df["date"].iloc[-1] + Timedelta(hours=16),
     ],
     linecolor="rgba(0,0,0,0)",
     showspikes=True,
@@ -517,19 +526,19 @@ fig_future_rain.update_yaxes(
     showline=True,
     linecolor="rgba(0,0,0,0.56)",
 )
-fig_future_rain.add_shape(
-    type="line",
-    xref="paper",
-    yref="paper",
-    x0=0,
-    x1=1,
-    y0=1,
-    y1=1,
-    line=dict(
-        color="rgba(0,0,0,0.08)",
-        width=1.5,
-    ),
-)
+# fig_future_rain.add_shape(
+#     type="line",
+#     xref="paper",
+#     yref="paper",
+#     x0=0,
+#     x1=1,
+#     y0=1,
+#     y1=1,
+#     line=dict(
+#         color="rgba(0,0,0,0.08)",
+#         width=1.5,
+#     ),
+# )
 
 # Today------------------------------------------------
 tz = response.Timezone().decode()
@@ -624,7 +633,7 @@ bubble_size = 10 + today_df["precipitation_probability"] * 0.3
 
 # 確率に応じた色（青の濃さ）
 bubble_colors = [
-    f"rgba(90,160,220,{0.15 + (p / 100) * 0.85:.2f})"
+    f"rgba(129,184,190,{0.15 + (p / 100) * 0.85:.2f})"
     for p in today_df["precipitation_probability"]
 ]
 
@@ -665,7 +674,7 @@ fig_today.update_layout(
     margin=dict(l=20, r=20, t=30, b=20),
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Zen Maru Gothic", size=11, color="#5f6f65"),
+    font=dict(family="Zen Maru Gothic", size=12, color="#5f6f65"),
     hovermode="x unified",
     hoverdistance=200,
     showlegend=False,
@@ -720,7 +729,7 @@ fig_today.update_xaxes(
     tickmode="array",
     tickvals=today_df["date"],
     ticktext=today_df["x_label"],
-    tickfont=dict(size=10),
+    tickfont=dict(size=14),
     ticks="",  # 目盛り線は無し
     ticklen=0,  # 目盛り線の長さを0にして完全に消す
     showline=False,  # ← 軸ライン出す！
@@ -743,7 +752,7 @@ fig_today.update_yaxes(
     linecolor="rgba(0,0,0,0.06)",
     ticks="",
     ticklen=0,
-    tickfont=dict(size=10),
+    tickfont=dict(size=14),
     range=[
         0,
         today_df["temperature_2m"].max() + 5,
@@ -764,7 +773,7 @@ fig_today.update_yaxes(
     zerolinewidth=0.06,
     ticks="",
     ticklen=0,
-    tickfont=dict(size=10),
+    tickfont=dict(size=14),
     row=1,
     col=1,
     secondary_y=True,
@@ -1056,18 +1065,19 @@ app.layout = html.Div(
                         html.Img(
                             src="assets/Plantly_icon.png",
                             style={
-                                "width": "32px",
-                                "height": "32px",
+                                "width": "34px",
+                                "height": "34px",
                                 "marginLeft": "8px",
+                                "marginBottom": "-10px",
                             },
                         ),
                         html.H1(
                             "PLANTly",
                             style={
                                 "marginTop": "0",
-                                "marginBottom": "10px",
-                                "marginLeft": "4px",
-                                "fontSize": "32px",
+                                "marginBottom": "-8px",
+                                "marginLeft": "6px",
+                                "fontSize": "38px",
                                 "fontWeight": "500",
                                 "color": "#5f6f65",
                             },
@@ -1077,6 +1087,8 @@ app.layout = html.Div(
                         "display": "flex",
                         "alignItems": "center",
                         "gap": "0px",
+                        "borderBottom": "4px solid rgba(120, 92, 62, 0.75)",
+                        "paddingBottom": "0",
                     },
                 ),
                 # Info card Top-right
@@ -1084,12 +1096,17 @@ app.layout = html.Div(
                     [
                         html.Div("💧Past 5days"),
                         html.Div(f"{rain_5days:.0f} mm"),
-                        html.Div("🌡️Max 12h"),
+                        html.Div("🕰️Next"),
+                        html.Div(
+                            "------",
+                            style={"color": "rgba(0,0,0,0.6)"},
+                        ),
+                        html.Div("🌡️12h Max"),
                         html.Div(
                             f"{temp_max_12h:.1f} ℃",
                             style={"color": "#e74c3c"},
                         ),
-                        html.Div("🌡️Min 12h"),
+                        html.Div("🌡️12h min"),
                         html.Div(
                             f"{temp_min_12h:.1f} ℃",
                             style={"color": "#4dabf7"},
@@ -1108,7 +1125,7 @@ app.layout = html.Div(
                         "boxShadow": "0 2px 8px rgba(0, 0, 0, 0.1)",
                         "width": "220px",
                         "hight": "180px",
-                        "fontSize": "18px",
+                        "fontSize": "16px",
                         "lineHeight": "1.2",
                         "marginLeft": "auto",
                         "position": "relative",
@@ -1137,9 +1154,9 @@ app.layout = html.Div(
                     style={
                         "width": "40%",
                         "height": "300px",
-                        "backgroundColor": "#f3f1eb",
+                        "backgroundColor": "#ece7dc",
                         "borderRadius": "20px",
-                        "padding": "4px",
+                        "padding": "6px",
                         "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
                     },
                 ),
@@ -1151,8 +1168,9 @@ app.layout = html.Div(
                             figure=fig_future_temp,
                             clear_on_unhover=True,
                             style={
-                                "flex": 6,
+                                "flex": 7,
                                 "minHeight": 0,
+                                "marginBottom": "0px",
                             },
                             config={"displayModeBar": False},
                             responsive=True,
@@ -1161,10 +1179,7 @@ app.layout = html.Div(
                             id="future-rain-graph",
                             figure=fig_future_rain,
                             clear_on_unhover=True,
-                            style={
-                                "flex": 4,
-                                "minHeight": 0,
-                            },
+                            style={"flex": 3, "minHeight": 0, "marginTop": "-10px,"},
                             config={"displayModeBar": False},
                             responsive=True,
                         ),
@@ -1175,7 +1190,7 @@ app.layout = html.Div(
                                 "pointerEvents": "none",
                                 "zIndex": 9999,
                                 "backgroundColor": "rgba(255,255,255,0.95)",
-                                "borderRadius": "12px",
+                                "borderRadius": "19px",
                                 "padding": "8px",
                                 "boxShadow": "0 4px 12px rgba(0,0,0,0.12)",
                             },
@@ -1186,9 +1201,9 @@ app.layout = html.Div(
                         "height": "300px",
                         "display": "flex",
                         "flexDirection": "column",
-                        "backgroundColor": "#f3f1eb",
+                        "backgroundColor": "#ece7dc",
                         "borderRadius": "20px",
-                        "padding": "4px",
+                        "padding": "6px",
                         "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
                         "position": "relative",
                     },
@@ -1252,19 +1267,19 @@ app.layout = html.Div(
                 "display": "flex",
                 "justifyContent": "space-between",
                 "alignItems": "stretch",
-                "backgroundColor": "#f3f1eb",
+                "backgroundColor": "#ece7dc",
                 "borderRadius": "20px",
                 "padding": "4px",
-                "marginTop": "20px",
+                "marginTop": "10px",
                 "boxShadow": "0 4px 12px rgba(0,0,0,0.05)",
             },
         ),
     ],
     style={
-        "backgroundColor": "#daedda",
-        "minHeight": "80vh",
+        "backgroundColor": "#c7e3c7",
+        "minHeight": "60vh",
         "borderRadius": "20px",
-        "padding": "16px",
+        "padding": "14px",
         "fontFamily": "Zen Maru Gothic",
         "position": "relative",
     },
