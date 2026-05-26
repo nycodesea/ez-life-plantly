@@ -2,3 +2,40 @@ body {
     background-color: #eeeeee;
     margin: 15px 10px;
 }
+
+/* =========================
+   for Phone single column
+========================= */
+@media (max-width: 768px) {
+
+  /* 全体余白調整 */
+  body {
+    margin: 0;
+  }
+
+  /* 上のヘッダー */
+  div {
+    flex-direction: column !important;
+  }
+
+  /* 左右2カラムを縦にする */
+  .js-plotly-plot,
+  .dash-graph {
+    width: 100% !important;
+  }
+
+  /* カード系の横並びを潰す */
+  [style*="display: flex"] {
+    flex-direction: column !important;
+  }
+
+  /* infoカードちょい縮める */
+  div[style*="220px"] {
+    width: 100% !important;
+  }
+
+  /* グラフの高さ調整 */
+  .js-plotly-plot {
+    height: 280px !important;
+  }
+}
