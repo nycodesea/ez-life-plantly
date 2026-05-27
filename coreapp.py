@@ -1071,9 +1071,24 @@ def display_today_hover(hoverData):
     )
 
 
+# #Interval
+# @app.callback(
+#     Output(...),
+#     Input("interval-component", "n_intervals")
+# )
+# def update_data(n):
+#     # API取得
+#     # dataframe更新
+#     # graph返す
+
 # Dash---------------------------------------
 app.layout = html.Div(
     [
+        # dcc.Interval(
+        #     id="interval-component",
+        #     interval=60 * 60 * 1000,
+        #     n_intervals=0,
+        # ),
         # Most-Top
         html.Div(
             [
