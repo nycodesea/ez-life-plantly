@@ -31,6 +31,7 @@ params = {
         "precipitation_probability_max",
         "temperature_2m_max",
         "temperature_2m_min",
+        "uv_index_max",
     ],
     "current": [
         "temperature_2m",
@@ -93,6 +94,7 @@ daily_precipitation_sum = daily.Variables(4).ValuesAsNumpy()
 daily_precipitation_probability_max = daily.Variables(6).ValuesAsNumpy()
 daily_temperature_2m_max = daily.Variables(7).ValuesAsNumpy()
 daily_temperature_2m_min = daily.Variables(8).ValuesAsNumpy()
+daily_uv_index_max = daily.Variables(9).ValuesAsNumpy()
 
 daily_data = {
     "date": pd.date_range(
@@ -109,6 +111,7 @@ daily_data["daily_precipitation_sum"] = daily_precipitation_sum
 daily_data["daily_precipitation_probability_max"] = daily_precipitation_probability_max
 daily_data["daily_temperature_2m_max"] = daily_temperature_2m_max
 daily_data["daily_temperature_2m_min"] = daily_temperature_2m_min
+daily_data["daily_uv_index_max"] = daily_uv_index_max
 
 daily_dataframe = pd.DataFrame(data=daily_data)
 
@@ -871,24 +874,48 @@ def format_time(x):
 
 rain_start_time = format_time(rain_start_time)
 
-# insight Card
-insight_title = "💧 水やり推奨"
-insight_text = (
+# insight Card--------------------------
+# insight Water
+insight_water_title = "💧 水やり : "
+insight_water_text = (
     f"ここ5日間の降水量は{rain_5days:.0f}mmです。"
     f"今後12時間は最高{temp_max_12h:.0f}℃まで上がる予報です。"
 )
 
 if rain_start_time == "not rain" and rain_5days < 10:
-    insight_title = "💧 水やり推奨"
-    insight_text = "しばらく雨予報がなく、土が乾きやすい状況です。"
+    insight_water_title = "💧 水やり推奨 : "
+    insight_water_text = "しばらく雨予報がなく、土が乾きやすい状況です。"
 
 elif rain_start_time != "not rain":
-    insight_title = "🌧️ 水やり不要"
-    insight_text = "雨が予想されているため、水やりは様子見で良さそうです。"
+    insight_water_title = "🌧️ 水やり不要 : "
+    insight_water_text = "雨が予想されているため、水やりは様子見で良さそうです。"
 
 else:
-    insight_title = "🌱 状態良好"
-    insight_text = "極端な乾燥や降雨は予想されていません。"
+    insight_water_title = "🌱 状態良好 : "
+    insight_water_text = "極端な乾燥や降雨は予想されていません。"
+
+# insight Soloar-ray
+today_uv = daily_dataframe.loc[
+    daily_dataframe["date"].dt.normalize() == today,
+    "daily_uv_index_max",
+].iloc[0]
+
+insight_solar_title = ""
+insight_solar_text = f""
+
+if today_uv >= 8:
+    insight_solar_title = ("⛱️UV : ",)
+    insight_solar_text = "Danger⚡"
+elif today_uv > 5:
+    insight_solar_title = ("⛱️UV : ",)
+    insight_solar_text = "注意⚠️"
+else:
+    insight_solar_title = ("⛱️UV : ",)
+    insight_solar_text = "👌"
+
+
+# insight some peaky scores
+
 
 # Dash-------------------------------------------
 app = Dash(
@@ -1130,19 +1157,29 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.Div(
-                                    insight_title,
+                                    html.Div(
+                                        [
+                                            insight_water_title,
+                                            insight_water_text,
+                                        ]
+                                    ),
                                     style={
-                                        "fontSize": "16px",
+                                        "fontSize": "14px",
                                         "fontWeight": "500",
                                         "color": "#5f6f65",
                                     },
                                 ),
                                 html.Div(
-                                    insight_text,
+                                    html.Div(
+                                        [
+                                            insight_solar_title,
+                                            insight_solar_text,
+                                        ]
+                                    ),
                                     style={
                                         "fontSize": "14px",
-                                        "marginTop": "8px",
-                                        "lineHeight": "1.5",
+                                        "fontWeight": "500",
+                                        "color": "#5f6f65",
                                     },
                                 ),
                             ],
