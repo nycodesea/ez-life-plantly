@@ -9,182 +9,11 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback, no_update, ctx
 import numpy as np
 from plotly.subplots import make_subplots
+from config import URL, TZ, WEATHER_GROUPS, WEATHER_ICONS, API_PARAMS
+import weather
 
-cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-openmeteo = openmeteo_requests.Client(session=retry_session)
+weather_data = weather.load_weather_data()
 
-# Timezone
-TZ = "Asia/Tokyo"
-# Weather codes
-WEATHER_GROUPS = {
-    "sunny": [0],
-    "cloudy": [1, 2, 3],
-    "fog": [45, 48],
-    "drizzle": [51, 53, 55],
-    "rain": [61, 63, 65, 66, 67, 80, 81, 82],
-    "snow": [71, 73, 75, 77, 85, 86],
-    "thunder": [95, 96, 99],
-}
-
-
-def get_weather_type(code):
-    for weather_type, codes in WEATHER_GROUPS.items():
-        if code in codes:
-            return weather_type
-    return "unknown"
-
-
-WEATHER_ICONS = {
-    "sunny": "☀️",
-    "cloudy": "☁️",
-    "fog": "🌫",
-    "drizzle": "🌂",
-    "rain": "🌧️",
-    "snow": "❄️",
-    "thunder": "⚡",
-}
-
-url = "https://api.open-meteo.com/v1/forecast"
-params = {
-    "latitude": 35.6895,
-    "longitude": 139.6917,
-    "daily": [
-        "weather_code",
-        "rain_sum",
-        "showers_sum",
-        "snowfall_sum",
-        "precipitation_sum",
-        "precipitation_hours",
-        "precipitation_probability_max",
-        "temperature_2m_max",
-        "temperature_2m_min",
-        "uv_index_max",
-    ],
-    "current": [
-        "temperature_2m",
-        "relative_humidity_2m",
-        "is_day",
-        "precipitation",
-        "precipitation_probability",
-        "rain",
-        "showers",
-        "snowfall",
-        "weather_code",
-        "cloud_cover",
-        "wind_speed_10m",
-        "evapotranspiration",
-        "soil_temperature_0cm",
-        "soil_temperature_6cm",
-        "soil_temperature_18cm",
-        "soil_moisture_0_to_1cm",
-        "soil_moisture_1_to_3cm",
-        "soil_moisture_3_to_9cm",
-        "soil_moisture_9_to_27cm",
-        "uv_index",
-        "sunshine_duration",
-    ],
-    "hourly": [
-        "temperature_2m",
-        "relative_humidity_2m",
-        "is_day",
-        "precipitation",
-        "precipitation_probability",
-        "rain",
-        "showers",
-        "snowfall",
-        "weather_code",
-        "cloud_cover",
-        "wind_speed_10m",
-        "evapotranspiration",
-        "soil_temperature_0cm",
-        "soil_temperature_6cm",
-        "soil_temperature_18cm",
-        "soil_moisture_0_to_1cm",
-        "soil_moisture_1_to_3cm",
-        "soil_moisture_3_to_9cm",
-        "soil_moisture_9_to_27cm",
-        "uv_index",
-        "sunshine_duration",
-    ],
-    "timezone": TZ,
-    "past_days": 7,
-    "wind_speed_unit": "ms",
-}
-
-
-# get api and data process
-def load_weather_data():
-    responses = openmeteo.weather_api(url, params=params)
-    response = responses[0]
-
-    # Process daily data.
-    daily = response.Daily()
-    daily_vars = params["daily"]
-
-    daily_data = {
-        var: daily.Variables(i).ValuesAsNumpy() for i, var in enumerate(daily_vars)
-    }
-
-    daily_data["date"] = pd.date_range(
-        start=pd.to_datetime(daily.Time(), unit="s", utc=True),
-        end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
-        freq=pd.Timedelta(seconds=daily.Interval()),
-        inclusive="left",
-    ).tz_convert(response.Timezone().decode())
-
-    daily_dataframe = pd.DataFrame(data=daily_data)
-
-    # Process hourly data
-    hourly = response.Hourly()
-
-    hourly_vars = params["hourly"]
-
-    hourly_data = {
-        var: hourly.Variables(i).ValuesAsNumpy() for i, var in enumerate(hourly_vars)
-    }
-
-    hourly_df = pd.DataFrame(hourly_data)
-    hourly_df["weather_type"] = hourly_df["weather_code"].apply(get_weather_type)
-    hourly_df["weather_icon"] = hourly_df["weather_type"].map(WEATHER_ICONS)
-    hourly_df["date"] = pd.date_range(
-        start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-        end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-        freq=pd.Timedelta(seconds=hourly.Interval()),
-        inclusive="left",
-    ).tz_convert(response.Timezone().decode())
-
-    daily_dataframe["weather_type"] = daily_dataframe["weather_code"].apply(
-        get_weather_type
-    )
-
-    daily_dataframe["weather_icon"] = daily_dataframe["weather_type"].map(WEATHER_ICONS)
-    daily_dataframe["label"] = (
-        daily_dataframe["date"]
-        .dt.strftime("%m/%d")
-        .str.replace("/0", "/")
-        .str.lstrip("0")
-        + "<br>"
-        + daily_dataframe["weather_icon"]
-    )
-
-    # date span
-    today = pd.Timestamp.now(tz=TZ).normalize()
-
-    past_7days_df = daily_dataframe[daily_dataframe["date"] < today]
-    tomorrow = today + Timedelta(days=1)
-    future_7days_df = daily_dataframe[daily_dataframe["date"] >= tomorrow]
-
-    return {
-        "past_7days_df": past_7days_df,
-        "future_7days_df": future_7days_df,
-        "daily_dataframe": daily_dataframe,
-        "hourly_df": hourly_df,
-        "today": today,
-    }
-
-
-weather_data = load_weather_data()
 past_7days_df = weather_data["past_7days_df"]
 future_7days_df = weather_data["future_7days_df"]
 daily_dataframe = weather_data["daily_dataframe"]
@@ -195,13 +24,13 @@ today = weather_data["today"]
 # Plotly
 # Past 7days graph
 def build_past7days_figure(past_7days_df):
-    fig2 = px.bar(
+    fig_past = px.bar(
         past_7days_df,
         x="date",
         y="precipitation_sum",
         custom_data=["precipitation_sum"],
     )
-    fig2.update_layout(
+    fig_past.update_layout(
         dragmode="zoom",
         yaxis=dict(fixedrange=True),
         height=150,
@@ -221,11 +50,11 @@ def build_past7days_figure(past_7days_df):
             ),
         ),
     )
-    fig2.update_traces(
+    fig_past.update_traces(
         marker_color="#81b8be",
         hovertemplate="%{y:.2f}mm<br>" + "<extra></extra>",
     )
-    fig2.update_xaxes(
+    fig_past.update_xaxes(
         title=None,
         tickmode="array",
         gridcolor="rgba(0,0,0,0)",
@@ -247,7 +76,7 @@ def build_past7days_figure(past_7days_df):
         past_7days_df["precipitation_sum"].max() + 2,
         10,
     )
-    fig2.update_yaxes(
+    fig_past.update_yaxes(
         title=None,
         gridcolor="rgba(0,0,0,0.06)",
         griddash="dot",
@@ -261,7 +90,7 @@ def build_past7days_figure(past_7days_df):
         linewidth=0.1,
         linecolor="rgba(0,0,0,0.06)",
     )
-    fig2.add_annotation(
+    fig_past.add_annotation(
         text="mm",
         xref="paper",
         yref="paper",
@@ -269,7 +98,7 @@ def build_past7days_figure(past_7days_df):
         y=1,
         showarrow=False,
     )
-    return fig2
+    return fig_past
 
 
 # future 7days graph
@@ -380,7 +209,7 @@ def build_future7days_figure(future_7days_df):
     ]
     max_precipitation = future_7days_df["precipitation_sum"].max()
     future_7days_df["bubble_size"] = (
-        future_7days_df["precipitation_sum"] + 10 if max_precipitation > 0 else 0
+        future_7days_df["precipitation_sum"] + 40 if max_precipitation > 0 else 0
     )
 
     future_7days_df["bubble_text"] = future_7days_df[
@@ -578,7 +407,7 @@ def build_today_figure(hourly_df):
         xaxis=dict(hoverformat="%-m/%-d %-H:%M"),
     )
 
-    today_df["weather_type"] = today_df["weather_code"].apply(get_weather_type)
+    today_df["weather_type"] = today_df["weather_code"].apply(weather.get_weather_type)
 
     today_df["weather_icon"] = today_df["weather_type"].map(WEATHER_ICONS)
 
@@ -1012,7 +841,7 @@ def display_today_hover(hoverData):
     Input("interval-component", "n_intervals"),
 )
 def update_data(n):
-    weather_data = load_weather_data()
+    weather_data = weather.load_weather_data()
 
     past_7days_df = weather_data["past_7days_df"]
     future_7days_df = weather_data["future_7days_df"]
@@ -1021,7 +850,7 @@ def update_data(n):
     today = weather_data["today"]
 
     # graph rebuild
-    fig2 = build_past7days_figure(past_7days_df)
+    fig_past = build_past7days_figure(past_7days_df)
     fig_future_temp, fig_future_rain = build_future7days_figure(future_7days_df)
     fig_today = build_today_figure(hourly_df)
 
@@ -1054,7 +883,7 @@ def update_data(n):
     )
 
     return (
-        fig2,
+        fig_past,
         fig_future_temp,
         fig_future_rain,
         fig_today,
@@ -1068,7 +897,7 @@ def update_data(n):
 
 
 # Initial figures
-fig2 = build_past7days_figure(past_7days_df)
+fig_past = build_past7days_figure(past_7days_df)
 fig_future_temp, fig_future_rain = build_future7days_figure(future_7days_df)
 fig_today = build_today_figure(hourly_df)
 
@@ -1228,7 +1057,7 @@ app.layout = html.Div(
                     [
                         dcc.Graph(
                             id="past-graph",
-                            figure=fig2,
+                            figure=fig_past,
                             responsive=True,
                             style={
                                 "height": "100%",
@@ -1376,5 +1205,7 @@ app.layout = html.Div(
     },
 )
 
-if __name__=="__main__":
-    app.run(debug=False, host="0.0.0.0", port=8050)
+app.run(debug=True)
+
+# if __name__ == "__main__":
+#     app.run(debug=False, host="0.0.0.0", port=8050)
