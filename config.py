@@ -3,6 +3,8 @@ URL = "https://api.open-meteo.com/v1/forecast"
 
 # Timezone
 TZ = "Asia/Tokyo"
+LATITUDE = 35.6895
+LONGITUDE = 139.6917
 # Weather codes
 WEATHER_GROUPS = {
     "sunny": [0],
@@ -25,8 +27,8 @@ WEATHER_ICONS = {
 }
 
 API_PARAMS = {
-    "latitude": 35.6895,
-    "longitude": 139.6917,
+    "latitude": LATITUDE,
+    "longitude": LONGITUDE,
     "daily": [
         "weather_code",
         "rain_sum",
