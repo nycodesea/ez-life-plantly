@@ -9,7 +9,16 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback, no_update, ctx
 import numpy as np
 from plotly.subplots import make_subplots
-from config import URL, TZ, WEATHER_GROUPS, WEATHER_ICONS, API_PARAMS
+from config import (
+    URL,
+    TZ,
+    WEATHER_GROUPS,
+    WEATHER_ICONS,
+    API_PARAMS,
+    NOW,
+    NOW_HOUR,
+    NOW_DAY,
+)
 import weather
 
 weather_data = weather.load_weather_data()
@@ -160,7 +169,7 @@ def build_future7days_figure(future_7days_df):
     )
 
     fig_future_temp.update_xaxes(
-        showline=True,
+        showline=False,
         linecolor="rgba(0,0,0,0.2)",
         fixedrange=True,
         showgrid=False,
@@ -274,7 +283,7 @@ def build_future7days_figure(future_7days_df):
         ticklabelstandoff=-14,
         showgrid=False,
         zeroline=False,
-        showline=True,
+        showline=False,
         range=[
             future_7days_df["date"].iloc[0] - Timedelta(hours=12),
             future_7days_df["date"].iloc[-1] + Timedelta(hours=16),
@@ -294,8 +303,8 @@ def build_future7days_figure(future_7days_df):
         showticklabels=False,
         showgrid=False,
         zeroline=False,
-        showline=True,
-        linecolor="rgba(0,0,0,0.56)",
+        showline=False,
+        linecolor="rgba(0,0,0,0)",
     )
     return fig_future_temp, fig_future_rain
 
@@ -544,11 +553,11 @@ def build_today_figure(hourly_df):
 
 
 # Information Card
-def build_info_card(past_7days_df, today_hourly_df, now):
+def build_info_card(past_7days_df, today_hourly_df, NOW):
     rain_5days = past_7days_df["precipitation_sum"].tail(5).sum()
     df_12h = today_hourly_df[
-        (today_hourly_df["date"] >= now)
-        & (today_hourly_df["date"] <= now + pd.Timedelta(hours=12))
+        (today_hourly_df["date"] >= NOW)
+        & (today_hourly_df["date"] <= NOW + pd.Timedelta(hours=12))
     ]
     if df_12h.empty:
         temp_max_12h = np.nan
@@ -561,13 +570,13 @@ def build_info_card(past_7days_df, today_hourly_df, now):
         temp_min_12h = df_12h["temperature_2m"].min()
 
     current_row = today_hourly_df[
-        (today_hourly_df["date"] <= now)
-        & (today_hourly_df["date"] > now - pd.Timedelta(minutes=30))
+        (today_hourly_df["date"] <= NOW)
+        & (today_hourly_df["date"] > NOW - pd.Timedelta(minutes=30))
     ].tail(1)
 
     is_raining_now = not current_row.empty and current_row["precipitation"].iloc[0] > 0
     rain_future = today_hourly_df[
-        (today_hourly_df["date"] > now) & (today_hourly_df["precipitation"] > 0)
+        (today_hourly_df["date"] > NOW) & (today_hourly_df["precipitation"] > 0)
     ]
 
     if is_raining_now:
@@ -855,7 +864,6 @@ def update_data(n):
     fig_today = build_today_figure(hourly_df)
 
     # info rebuild
-    now = pd.Timestamp.now(tz=TZ)
 
     (
         rain_5days,
@@ -865,7 +873,7 @@ def update_data(n):
     ) = build_info_card(
         past_7days_df,
         hourly_df,
-        now,
+        NOW,
     )
 
     # insight rebuild
@@ -902,8 +910,6 @@ fig_future_temp, fig_future_rain = build_future7days_figure(future_7days_df)
 fig_today = build_today_figure(hourly_df)
 
 # Initial info card
-now = pd.Timestamp.now(tz=TZ)
-
 (
     rain_5days,
     temp_max_12h,
@@ -912,7 +918,7 @@ now = pd.Timestamp.now(tz=TZ)
 ) = build_info_card(
     past_7days_df,
     hourly_df,
-    now,
+    NOW,
 )
 
 # Initial insight
