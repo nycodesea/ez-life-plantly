@@ -40,8 +40,8 @@ pip install -r requirements.txt
 Edit config.py and set your location:
 
 ```python
-LATITUDE = 35.68
-LONGITUDE = 139.76
+LATITUDE = 35.6
+LONGITUDE = 139.7
 TIMEZONE = "Asia/Tokyo"
 ```
 
