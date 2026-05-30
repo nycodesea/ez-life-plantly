@@ -30,8 +30,9 @@ Plantly analyzes weather forecasts and recent rainfall data to provide simple in
 ```bash
 git clone https://github.com/nycodesea/Plantly.git
 cd Plantly
+uv sync
 ```
-Install dependencies:
+or
 ```bash
 pip install -r requirements.txt
 ```
