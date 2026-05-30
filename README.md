@@ -4,13 +4,11 @@ A weather-powered dashboard that helps you make better plant care decisions.
 
 Plantly analyzes weather forecasts and recent rainfall data to provide simple insights about watering, temperature, rain, and UV conditions.
 
----
 
 ## 🖼️ Screenshot
 
 ![Plantly Screenshot](assets/screenshot.png)
 
----
 
 ## 🌿 Features
 
@@ -22,7 +20,7 @@ Plantly analyzes weather forecasts and recent rainfall data to provide simple in
 - ⚡ UV risk indicator
 - 🔄 Auto-refresh every hour
 
----
+
 ## 🚀 Getting Started
 Requirements
 Python 3.11+
@@ -51,7 +49,6 @@ Then open:
 
 http://localhost:8050
 
----
 ## Built With
 
 - [Open-Meteo](https://open-meteo.com/) - Weather forecast API
@@ -59,13 +56,13 @@ http://localhost:8050
 - [Plotly](https://plotly.com/python/) - Interactive graphs
 - [Pandas](https://pandas.pydata.org/) - Data processing
 - [NumPy](https://numpy.org/) — Numerical calculations
----
+
 ## 📈 Data Source
 
 Weather data provided by Open-Meteo:
 
 https://open-meteo.com/
-
+---
 ## 📄 License
 
 MIT License
