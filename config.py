@@ -1,12 +1,15 @@
 import pandas as pd
+import json
+with open("settings.json", encoding="utf-8") as f:
+    settings = json.load(f)
 
 # URL OpenMeteo
 URL = "https://api.open-meteo.com/v1/forecast"
 
 # Timezone
-TZ = "Asia/Tokyo"
-LATITUDE = 35.6895
-LONGITUDE = 139.6917
+TZ = settings["timezone"] 
+LATITUDE = settings["latitude"] 
+LONGITUDE = settings["longitude"]
 REFRESH_INTERVAL = 60 * 60 * 1000
 # Weather codes
 WEATHER_GROUPS = {
