@@ -58,7 +58,7 @@ http://localhost:8050
 
 - [Open-Meteo](https://open-meteo.com/) - Weather forecast API
 - [Dash](https://dash.plotly.com/) - Web dashboard framework
-- [Plotly](https://plotly.com/python/) - Interactive graphs
+- [Plotly](https://plotly.com/) - Interactive graphs
 - [Pandas](https://pandas.pydata.org/) - Data processing
 - [NumPy](https://numpy.org/) — Numerical calculations
 
