@@ -13,7 +13,7 @@ Plantly analyzes weather forecasts and recent rainfall data to provide simple in
 ## 🌿 Features
 
 - 🌦 Real-time weather data from Open-Meteo
-- 📊 Hourly + daily interactive graphs
+- 📊 Hourly and daily interactive graphs
 - 💧 Watering recommendations based on recent rainfall
 - 🌡 Temperature summary for the next 12 hours
 - ☔ Rain forecast with probability visualization
@@ -22,7 +22,7 @@ Plantly analyzes weather forecasts and recent rainfall data to provide simple in
 
 
 ## 🚀 Getting Started
-### requirements 
+### Requirements 
 - Python 3.11+
 - Internet connection
 
@@ -36,7 +36,7 @@ uv sync
 
 Edit settings.json and set your location:
 
-```JSON
+```json
 {
     "timezone": "Asia/Tokyo",
     "latitude": 35.6,
@@ -45,6 +45,9 @@ Edit settings.json and set your location:
 ```
 
 ### Run
+⚠️ By default, Plantly runs as a local web server.
+
+If you want to use Dash debug mode instead, modify the settings at the bottom of coreapp.py.
 ```bash
 uv run python coreapp.py
 ```
@@ -60,7 +63,7 @@ http://localhost:8050
 - [Dash](https://dash.plotly.com/) - Web dashboard framework
 - [Plotly](https://plotly.com/) - Interactive graphs
 - [Pandas](https://pandas.pydata.org/) - Data processing
-- [NumPy](https://numpy.org/) — Numerical calculations
+- [NumPy](https://numpy.org/) - Numerical calculations
 
 ## 📈 Data Source
 
