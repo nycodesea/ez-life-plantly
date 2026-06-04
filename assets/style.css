@@ -8,34 +8,38 @@ body {
 ========================= */
 @media (max-width: 768px) {
 
-  /* 全体余白調整 */
-  body {
+  /* Container */
+  .app-container {
     margin: 0;
   }
 
-  /* 上のヘッダー */
-  div {
-    flex-direction: column !important;
+  /* title and cards */
+  .top-section {
+    flex-direction: column ;
   }
 
-  /* 左右2カラムを縦にする */
-  .js-plotly-plot,
-  .dash-graph {
+  .cards{
+    margin-bottom: 10px;
+  }
+  #insight-card {
+    padding-left: 22px !important;
+  }
+  #info-card {
+    margin-left: 0 !important;
+    padding-left: 20px !important;
+  }
+
+  .Upper-graphs {
+    flex-direction: column ;
+  }
+
+#past-graph, #future-graph {
     width: 100% !important;
+    height: 300px !important;
   }
 
-  /* カード系の横並びを潰す */
-  [style*="display: flex"] {
-    flex-direction: column !important;
+  .Lower-graph {
+    flex-direction: column ;
   }
 
-  /* infoカードちょい縮める */
-  div[style*="220px"] {
-    width: 100% !important;
-  }
-
-  /* グラフの高さ調整 */
-  .js-plotly-plot {
-    height: 280px !important;
-  }
 }

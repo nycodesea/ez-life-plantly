@@ -30,6 +30,7 @@ def create_layout(
                                 [
                                     html.Img(
                                         src="assets/Plantly_icon.png",
+                                        id="logo",
                                         style={
                                             "width": "34px",
                                             "height": "34px",
@@ -39,6 +40,7 @@ def create_layout(
                                     ),
                                     html.H1(
                                         "PLANTly",
+                                        id="title",
                                         style={
                                             "marginTop": "0",
                                             "marginBottom": "-8px",
@@ -49,6 +51,7 @@ def create_layout(
                                         },
                                     ),
                                 ],
+                                className="titles",
                                 style={
                                     "display": "flex",
                                     "alignItems": "center",
@@ -64,7 +67,7 @@ def create_layout(
                                     html.Div(
                                         id="insight-water",
                                         style={
-                                            "fontSize": "14px",
+                                            "fontSize": "16px",
                                             "fontWeight": "500",
                                             "color": "#5f6f65",
                                         },
@@ -72,12 +75,14 @@ def create_layout(
                                     html.Div(
                                         id="insight-solar",
                                         style={
-                                            "fontSize": "14px",
+                                            "fontSize": "16px",
                                             "fontWeight": "500",
                                             "color": "#5f6f65",
                                         },
                                     ),
                                 ],
+                                className="cards",
+                                id="insight-card",
                                 style={
                                     "backgroundColor": "#ece7dc",
                                     "padding": "14px 18px",
@@ -113,6 +118,8 @@ def create_layout(
                             html.Div("🌂Rain start"),
                             html.Div(f"{rain_start_time}", id="rain-start-value"),
                         ],
+                        className="cards",
+                        id="info-card",
                         style={
                             "display": "grid",
                             "gridTemplateColumns": "auto 1fr",
@@ -132,6 +139,7 @@ def create_layout(
                         },
                     ),
                 ],
+                className="top-section",
                 style={"display": "flex", "gap": "10px", "alignItems": "flex-start"},
             ),
             # Top graphs
@@ -141,7 +149,6 @@ def create_layout(
                     html.Div(
                         [
                             dcc.Graph(
-                                id="past-graph",
                                 figure=fig_past,
                                 responsive=True,
                                 style={
@@ -151,6 +158,7 @@ def create_layout(
                                 config={"displayModeBar": False},
                             )
                         ],
+                        id="past-graph",
                         style={
                             "width": "40%",
                             "height": "300px",
@@ -200,6 +208,7 @@ def create_layout(
                                 },
                             ),
                         ],
+                        id="future-graph",
                         style={
                             "width": "60%",
                             "height": "300px",
@@ -213,6 +222,7 @@ def create_layout(
                         },
                     ),
                 ],
+                className="Upper-graphs",
                 style={
                     "display": "flex",
                     "gap": "15px",
@@ -227,7 +237,6 @@ def create_layout(
                     html.Div(
                         [
                             dcc.Graph(
-                                id="today-graph",
                                 figure=fig_today,
                                 clear_on_unhover=True,
                                 style={
@@ -251,6 +260,7 @@ def create_layout(
                                 },
                             ),
                         ],
+                        id="today-graph",
                         style={
                             "display": "flex",
                             "flexDirection": "column",
@@ -267,6 +277,7 @@ def create_layout(
                     # right
                     # html.Div(""),
                 ],
+                className="Lower-graph",
                 style={
                     "display": "flex",
                     "justifyContent": "space-between",
@@ -279,6 +290,7 @@ def create_layout(
                 },
             ),
         ],
+        className="app-container",
         style={
             "backgroundColor": "#c7e3c7",
             "minHeight": "60vh",

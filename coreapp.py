@@ -22,6 +22,7 @@ today = weather_data["today"]
 # Dash
 app = Dash(
     __name__,
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
     external_stylesheets=[
         "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500&display=swap"
     ],
