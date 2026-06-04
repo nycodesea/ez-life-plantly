@@ -238,6 +238,7 @@ def create_layout(
                         [
                             dcc.Graph(
                                 figure=fig_today,
+                                id="today-graph",
                                 clear_on_unhover=True,
                                 style={
                                     "height": "400px",
@@ -260,7 +261,7 @@ def create_layout(
                                 },
                             ),
                         ],
-                        id="today-graph",
+                        id="today-graph-container",
                         style={
                             "display": "flex",
                             "flexDirection": "column",
