@@ -10,7 +10,6 @@ from graphs import (
 import weather
 from utils import get_now
 from cards import build_info_card, build_insight_card
-from config import TZ
 from database import init_db, save_yesterday_weather
 
 weather_data = weather.load_weather_data()
