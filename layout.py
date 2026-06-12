@@ -149,6 +149,7 @@ def create_layout(
                     html.Div(
                         [
                             dcc.Graph(
+                                id="past-graph",
                                 figure=fig_past,
                                 responsive=True,
                                 style={
@@ -158,7 +159,6 @@ def create_layout(
                                 config={"displayModeBar": False},
                             )
                         ],
-                        id="past-graph",
                         style={
                             "width": "40%",
                             "height": "300px",
