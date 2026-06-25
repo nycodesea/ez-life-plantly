@@ -14,6 +14,7 @@ from database import (
     init_db,
     save_missing_7days,
 )
+from flask import request, jsonify
 
 weather_data = weather.load_weather_data()
 
@@ -23,7 +24,7 @@ daily_dataframe = weather_data["daily_dataframe"]
 hourly_df = weather_data["hourly_df"]
 today = weather_data["today"]
 
-
+print(daily_dataframe)
 # Dash
 app = Dash(
     __name__,
@@ -33,6 +34,28 @@ app = Dash(
     ],
     title="Plantly",
 )
+# API
+server = app.server
+latest_humidity_data = {}
+
+
+# API receives humidity data
+@server.route("/api/sensor", methods=["POST"])
+def receive_humidity_data():
+    global latest_humidity_data
+
+    latest_humidity_data = request.get_json()
+    print("Received humidity data:", latest_humidity_data)
+
+    return jsonify({"message": "Data received successfully"}), 200
+
+
+# API Send next 3days weather rain sum
+@server.route("/api/weather")
+def get_weather():
+    rain_3days_sum = round(float(daily_dataframe["rain_sum"][7:11].sum()), 1)
+    return jsonify({"next_3days_rain_sum": rain_3days_sum})
+
 
 # Register callbacks
 register_callbacks(app, weather_data)
