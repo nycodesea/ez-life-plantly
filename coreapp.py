@@ -1,20 +1,21 @@
 # Plantly
 from dash import Dash
-from callbacks import register_callbacks
-from layout import create_layout
-from graphs import (
-    build_past7days_figure,
-    build_future7days_figure,
-    build_today_figure,
-)
+from flask import jsonify, request
+
 import weather
-from utils import get_now
+from callbacks import register_callbacks
 from cards import build_info_card, build_insight_card
 from database import (
     init_db,
     save_missing_7days,
 )
-from flask import request, jsonify
+from graphs import (
+    build_future7days_figure,
+    build_past7days_figure,
+    build_today_figure,
+)
+from layout import create_layout
+from utils import get_now
 
 weather_data = weather.load_weather_data()
 
@@ -50,7 +51,7 @@ def receive_humidity_data():
     return jsonify({"message": "Data received successfully"}), 200
 
 
-# API Send next 3days weather rain sum
+# API Send next 3days(today + 3days) weather rain sum
 @server.route("/api/weather")
 def get_weather():
     rain_3days_sum = round(float(daily_dataframe["rain_sum"][7:11].sum()), 1)
