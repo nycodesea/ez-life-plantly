@@ -6,6 +6,7 @@ from config import TZ
 from cards import build_info_card, build_insight_card
 from graphs import build_past7days_figure, build_future7days_figure, build_today_figure
 import weather
+import sensor
 
 
 def register_callbacks(app, weather_data):
@@ -220,3 +221,19 @@ def register_callbacks(app, weather_data):
             f"{insight_water_title}{insight_water_text}",
             f"{insight_solar_title}{insight_solar_text}",
         )
+
+    # --- Humidity Data Callback ---
+    @app.callback(
+        Output("humidity", "children"),
+        Input("humidity-interval", "n_intervals"),
+    )
+    def update_moisture(_):
+        moisture = sensor.latest_humidity_data.get("moisture")
+        dry_days = sensor.latest_humidity_data.get("dryDays")
+        if moisture is None:
+            return "--"
+
+        return [
+            html.Div(f"{moisture}", style={"fontSize": "28px"}),
+            html.Div(f"Dry Days: {dry_days}", style={"fontSize": "14px"}),
+        ]

@@ -16,6 +16,7 @@ from graphs import (
 )
 from layout import create_layout
 from utils import get_now
+import sensor
 
 weather_data = weather.load_weather_data()
 
@@ -24,6 +25,9 @@ future_7days_df = weather_data["future_7days_df"]
 daily_dataframe = weather_data["daily_dataframe"]
 hourly_df = weather_data["hourly_df"]
 today = weather_data["today"]
+
+# Initial humidity data
+latest_humidity_data = {"moisture": None, "dryDays": None, "watered": False}
 
 print(daily_dataframe)
 # Dash
@@ -45,8 +49,8 @@ latest_humidity_data = {}
 def receive_humidity_data():
     global latest_humidity_data
 
-    latest_humidity_data = request.get_json()
-    print("Received humidity data:", latest_humidity_data)
+    sensor.latest_humidity_data = request.get_json()
+    print("Received humidity data:", sensor.latest_humidity_data)
 
     return jsonify({"message": "Data received successfully"}), 200
 

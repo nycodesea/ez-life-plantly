@@ -19,6 +19,7 @@ def create_layout(
                 interval=REFRESH_INTERVAL,
                 n_intervals=0,
             ),
+            dcc.Interval(id="humidity-interval", interval=10000, n_intervals=0),
             # Most-Top
             html.Div(
                 [
@@ -98,46 +99,86 @@ def create_layout(
                     # Info card Top-right
                     html.Div(
                         [
-                            html.Div("💧Past 5days"),
-                            html.Div(f"{rain_5days:.0f} mm", id="rain-5days-value"),
-                            html.Div("🕰️Next"),
+                            # Soil moisture card
                             html.Div(
-                                "------",
-                                style={"color": "rgba(0,0,0,0.6)"},
+                                [
+                                    html.Div(
+                                        "🌱 Soil Moisture",
+                                        style={"fontSize": "14px", "color": "#666"},
+                                    ),
+                                    html.H2(
+                                        id="humidity",
+                                        style={
+                                            "margin": "8px 0 0 0",
+                                            "color": "#5f6f65",
+                                        },
+                                    ),
+                                ],
+                                className="cards",
+                                style={
+                                    "width": "110px",
+                                    "padding": "12px",
+                                    "backgroundColor": "#f3f1eb",
+                                    "borderRadius": "20px",
+                                    "boxShadow": "0 2px 8px rgba(0,0,0,0.1)",
+                                    "textAlign": "center",
+                                },
                             ),
-                            html.Div("🌡️12h Max"),
+                            # Info card
                             html.Div(
-                                f"{temp_max_12h:.1f} ℃",
-                                id="temp-max-value",
-                                style={"color": "#e74c3c"},
+                                [
+                                    html.Div("💧Past 5days"),
+                                    html.Div(
+                                        f"{rain_5days:.0f} mm", id="rain-5days-value"
+                                    ),
+                                    html.Div("🕰️Next"),
+                                    html.Div(
+                                        "------",
+                                        style={"color": "rgba(0,0,0,0.6)"},
+                                    ),
+                                    html.Div("🌡️12h Max"),
+                                    html.Div(
+                                        f"{temp_max_12h:.1f} ℃",
+                                        id="temp-max-value",
+                                        style={"color": "#e74c3c"},
+                                    ),
+                                    html.Div("🌡️12h min"),
+                                    html.Div(
+                                        f"{temp_min_12h:.1f} ℃",
+                                        id="temp-min-value",
+                                        style={"color": "#4dabf7"},
+                                    ),
+                                    html.Div("🌂Rain start"),
+                                    html.Div(
+                                        f"{rain_start_time}", id="rain-start-value"
+                                    ),
+                                ],
+                                className="cards",
+                                id="info-card",
+                                style={
+                                    "display": "grid",
+                                    "gridTemplateColumns": "auto 1fr",
+                                    "rowGap": "1",
+                                    "columnGap": "8px",
+                                    "padding": "12px",
+                                    "backgroundColor": "#f3f1eb",
+                                    "borderRadius": "20px",
+                                    "boxShadow": "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                    "width": "220px",
+                                    "height": "auto",
+                                    "fontSize": "16px",
+                                    "lineHeight": "1.4",
+                                    "marginLeft": "auto",
+                                    "position": "relative",
+                                    "zIndex": 10,
+                                },
                             ),
-                            html.Div("🌡️12h min"),
-                            html.Div(
-                                f"{temp_min_12h:.1f} ℃",
-                                id="temp-min-value",
-                                style={"color": "#4dabf7"},
-                            ),
-                            html.Div("🌂Rain start"),
-                            html.Div(f"{rain_start_time}", id="rain-start-value"),
                         ],
-                        className="cards",
-                        id="info-card",
                         style={
-                            "display": "grid",
-                            "gridTemplateColumns": "auto 1fr",
-                            "rowGap": "1",
-                            "columnGap": "8px",
-                            "padding": "12px",
-                            "backgroundColor": "#f3f1eb",
-                            "borderRadius": "20px",
-                            "boxShadow": "0 2px 8px rgba(0, 0, 0, 0.1)",
-                            "width": "220px",
-                            "height": "auto",
-                            "fontSize": "16px",
-                            "lineHeight": "1.4",
+                            "display": "flex",
+                            "gap": "10px",
                             "marginLeft": "auto",
-                            "position": "relative",
-                            "zIndex": 10,
+                            "alignItems": "flex-start",
                         },
                     ),
                 ],
